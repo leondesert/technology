@@ -3,7 +3,7 @@ name: Test deploy
 on:
   push:
     branches:
-      - zhiger
+      - main
 
 jobs:
   deploy:
@@ -20,6 +20,9 @@ jobs:
 
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
+
+      - name: Prepare .env for production
+        run: cp .env.production .env
 
       - name: Deploy using rsync over SSH
         run: |
