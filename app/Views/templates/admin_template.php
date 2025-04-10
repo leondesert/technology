@@ -202,7 +202,7 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
                 <a href="/dashboard" class="nav-link">
                   <i class="nav-icon fas fa-tachometer-alt"></i>
                   <p>
-                    Главная
+                    Главная 3
                   </p>
                 </a>
               </li>
