@@ -1,0 +1,47 @@
+/* Button */
+.card-body div:nth-child(1) div:nth-child(2) > button:nth-child(1){
+ background-color:#2ecc71;
+ color:#ffffff;
+ border-color:#ffffff;
+ border-top-left-radius:5px;
+ border-top-right-radius:5px;
+ border-bottom-left-radius:5px;
+ border-bottom-right-radius:5px;
+}
+
+/* Button */
+.wrapper .card .dt-button:nth-child(1){
+ background-color:#2ecc71;
+ color:#ffffff;
+ border-color:#ffffff;
+ border-top-left-radius:5px;
+ border-top-right-radius:5px;
+ border-bottom-left-radius:5px;
+ border-bottom-right-radius:5px;
+}
+
+/* Buttons collection */
+#operations_wrapper .dt-buttons .buttons-collection:nth-child(6){
+ color:#ffffff;
+}
+
+/* File excel */
+#operations_wrapper .dt-buttons .btn-fa-file-excel{
+ color:#ffffff;
+ background-color:#c0392b;
+ border-color:#ffffff;
+ border-bottom-left-radius:5px;
+ border-top-right-radius:5px;
+ border-top-left-radius:5px;
+ border-bottom-right-radius:5px;
+}
+
+/* File export */
+#operations_wrapper .dt-buttons .btn-fa-file-export{
+ border-color:#ffffff;
+ border-top-left-radius:5px;
+ border-top-right-radius:5px;
+ border-bottom-left-radius:5px;
+ border-bottom-right-radius:5px;
+ background-color:#34495e;
+}

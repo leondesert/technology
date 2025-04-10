@@ -1,0 +1,13 @@
+RewriteEngine on
+RewriteBase /
+RewriteCond %{THE_REQUEST} /public_html/([^\s?]*) [NC]
+RewriteRule ^ %1 [L,NE,R=302]
+RewriteRule ^((?!public_html/).*)$ public_html/$1 [L,NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php|images|robots\.txt)
+RewriteRule ^(.*)$ index.php/$1 [L]
+ErrorDocument 403 /not_found
+
+
+
