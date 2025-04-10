@@ -1,4 +1,4 @@
-name: Deploy CodeIgniter4
+name: Test deploy
 
 on:
   push:
@@ -28,5 +28,6 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           rsync -avz --delete \
+            --exclude=writable \
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:/var/www/technology

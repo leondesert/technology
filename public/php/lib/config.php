@@ -17,7 +17,7 @@ $sql_details = array(
 	'type' => 'Mysql',     // Database type: "Mysql", "Postgres", "Sqlserver", "Sqlite" or "Oracle"
 	'user' => 'technology_user',          // Database user name
 	'pass' => 'xR2rK7bH4e',          // Database password
-	'host' => 'localhost', // Database host
+	'host' => 'isp3.avs.tj', // Database host
 	'port' => '3306',          // Database connection port (can be left empty for default)
 	'db' => 'technology_db',          // Database name
 	'dsn' => 'charset=utf8mb4',          // PHP DSN extra information. Set as `charset=utf8mb4` if you are using MySQL
