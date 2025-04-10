@@ -3,7 +3,7 @@ name: Deploy CodeIgniter4
 on:
   push:
     branches:
-      - main
+      - zhiger
 
 jobs:
   deploy:
