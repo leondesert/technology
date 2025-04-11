@@ -19,6 +19,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use App\Models\ServicesModel;
 use App\Models\TransactionsModel;
 use App\Models\UserModel;
+use App\Models\TicketsModel;
 use App\Models\AgencyModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
@@ -2423,7 +2424,7 @@ class BigExportController extends Controller
         // Возвращаем ответ
         return $this->response->setJSON(['success' => true, 'data' => $data]);
     }
-    
+  
     public function calculateSummary()
     {   
 
@@ -2564,8 +2565,49 @@ class BigExportController extends Controller
             ];
     }
 
+    public function allExport()
+    {
 
+        // Пример: получаем данные из модели
+        $model = new TicketsModel(); // замените на свою модель
+        $data = $model->getData();
 
-
+        // Создаем новый документ
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+    
+        // Устанавливаем заголовки таблицы
+        $sheet->setCellValue('A1', 'ID');
+        $sheet->setCellValue('B1', 'Название');
+        $sheet->setCellValue('C1', 'Статус');
+    
+        // Добавляем данные
+        $row = 2;
+        foreach ($data as $item) {
+            $sheet->setCellValue('A' . $row, $item['tickets_id']);
+            $sheet->setCellValue('B' . $row, $item['tickets_type']); // замените на свои поля
+            $sheet->setCellValue('C' . $row, $item['tickets_currency']);
+            $row++;
+        }
+    
+        // Генерируем файл
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'exported_tasks_' . date('Ymd_His') . '.xlsx';
+    
+        // Устанавливаем заголовки для скачивания
+        return $this->response
+            ->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->setHeader('Content-Disposition', 'attachment;filename="' . $filename . '"')
+            ->setHeader('Cache-Control', 'max-age=0')
+            ->setBody($this->writeSpreadsheetToString($writer));
+    }
+    
+    // Функция для генерации строки из объекта writer
+    private function writeSpreadsheetToString($writer): string
+    {
+        ob_start();
+        $writer->save('php://output');
+        return ob_get_clean();
+    }
 }
 

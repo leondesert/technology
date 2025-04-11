@@ -81,6 +81,15 @@ class TicketsModel extends Model
         'ticket_exchanged',
     ];
      // Поля, доступные для работы с таблицей
-
+  
+     public function getData()
+     {
+        return $this->builder()
+        ->select('tickets_id, tickets_type, tickets_currency')
+        ->limit(10) // Ограничиваем только 10 строк
+        ->get()
+        ->getResultArray(); // Преобразуем результат в массив
+     }
+     
 
 }

@@ -521,12 +521,9 @@ function getDecadeDates(todayDate) {
 
 
 
-function ExportExcel(dt, type){
-    
+function ExportExcel(dt, type) {
     if (confirm('Уверены что хотите сделать экспорт?')) {
-
         var params = dt.ajax.params();
-
         params['type'] = type;
         params['start_date'] = document.getElementById('startDate').value;
         params['end_date'] = document.getElementById('endDate').value;
@@ -535,95 +532,70 @@ function ExportExcel(dt, type){
         params['name_table'] = document.getElementById('name_table').value;
         params['value_table'] = document.getElementById('value_table').value;
 
+        var columnVisibility = dt.columns().visible().toArray();
+        var columnNames = dt.columns().header().toArray().map(function(header) {
+            return $(header).text().trim();
+        });
+        var visibleColumnNames = columnNames.filter(function(name, index) {
+            return columnVisibility[index];
+        });
+        var visibleColumnsParam = visibleColumnNames.join(',');
 
-      var columnVisibility = dt.columns().visible().toArray();
-      var filterParams = getFilterParams(params);
-      
-      
-      // Получаем названия всех столбцов
-      var columnNames = dt.columns().header().toArray().map(function(header) {
-          return $(header).text().trim(); // Убедитесь, что названия столбцов не содержат лишних пробелов
-      });
-      
-      // Фильтруем названия, оставляя только видимые
-      var visibleColumnNames = columnNames.filter(function(name, index) {
-          return columnVisibility[index];
-      });
-      
-      // Преобразуем массив названий в строку для URL
-      var visibleColumnsParam = visibleColumnNames.join(','); // Используем запятую как разделитель
-            
+        params['visibleColumns'] = visibleColumnsParam;
 
-      $('#exportModal').modal({
-          backdrop: 'static', // Предотвращение закрытия при клике вне модального окна
-          keyboard: false     // Предотвращение закрытия с помощью клавиши Esc
-      });
+        $('#exportModal').modal({
+            backdrop: 'static',
+            keyboard: false
+        });
 
-      $('#exportModal #downloadButton').hide();
-      $('#exportModal #loadingAnimation').show();
-      $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
-      $('#exportModal #downloadButton').hide();
-      
+        $('#exportModal #downloadButton').hide();
+        $('#exportModal #loadingAnimation').show();
+        $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
 
-      params['visibleColumns'] = visibleColumnsParam;
-      
-
-      console.log('Export excel:', params);
-
-      $.ajax({
-          url: '/bigexport',
-          method: 'POST',
-          data: params,
-          success: function(data) {
-
-              console.log(data);
-              
-              if (data.status) {
-                  // Скрыть анимацию и обновить сообщение
-                  $('#exportModal #loadingAnimation').hide();
-                  $('#exportModal #modalMessage').text('Ваш файл готов к скачиванию!');
-
-                  // Показать кнопку скачивания
-                  $('#exportModal #downloadButton').show().click(function() {
-                      window.location.href = data.downloadUrl;
-                  });
-              }else{
-
-                  // Скрыть анимацию и обновить сообщение
-                  $('#exportModal #loadingAnimation').hide();
-                  $('#exportModal #modalMessage').text('Включите следующиее столбцы: ' + data.not_requireds.join(', '));
-
-              }
-              
-              
-
-          },
-          error: function(xhr, status, error) {
-              console.error(xhr);
-              // Скрыть анимацию загрузки
-              $('#exportModal #loadingAnimation').hide();
-
-              // Обновить сообщение модального окна для отображения ошибки
-              $('#exportModal #modalMessage').text('Ошибка запроса. Пожалуйста попробуйте снова.');
-
-
-              // Скрыть кнопку скачивания, так как экспорт не удался
-              $('#exportModal #downloadButton').hide();
-          },
-          complete: function() {
-              // Скрыть кнопку скачивания и кнопку закрытия при закрытии модального окна
-              $('#exportModal').on('hidden.bs.modal', function () {
-                  // $('#exportModal #downloadButton').hide();
-                  // $('#loadingAnimation').show();
-                  // $('#modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
-              });
-          }
-      
-      }); 
+        $.ajax({
+            url: '/bigexport',
+            method: 'POST',
+            data: params,
+            success: function(data) {
+                if (data.status === 'queued') {
+                    const taskId = data.taskId;
+                    const checkStatus = setInterval(function() {
+                        $.ajax({
+                            url: '/checkExportStatus',
+                            method: 'POST',
+                            data: { taskId: taskId },
+                            success: function(statusData) {
+                                if (statusData.status === 'completed') {
+                                    clearInterval(checkStatus);
+                                    $('#exportModal #loadingAnimation').hide();
+                                    $('#exportModal #modalMessage').text('Ваш файл готов к скачиванию!');
+                                    $('#exportModal #downloadButton').show().click(function() {
+                                        window.location.href = statusData.downloadUrl;
+                                    });
+                                } else if (statusData.status === 'failed') {
+                                    clearInterval(checkStatus);
+                                    $('#exportModal #loadingAnimation').hide();
+                                    $('#exportModal #modalMessage').text('Ошибка при экспорте: ' + statusData.message);
+                                }
+                            },
+                            error: function() {
+                                clearInterval(checkStatus);
+                                $('#exportModal #loadingAnimation').hide();
+                                $('#exportModal #modalMessage').text('Ошибка проверки статуса экспорта.');
+                            }
+                        });
+                    }, 5000); // Проверять каждые 5 секунд
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error response:', xhr.responseText);
+                $('#exportModal #loadingAnimation').hide();
+                $('#exportModal #modalMessage').text('Ошибка запроса. Пожалуйста, попробуйте снова.');
+                $('#exportModal #downloadButton').hide();
+            }
+        });
     }
 
-
-    // Закрываем основное модальное окно
     $('#exportModal .closez').off('click').on('click', function() {
         if (confirm('Уверены что хотите закрыть?')) {
             $('#exportModal').modal('hide');
@@ -632,10 +604,7 @@ function ExportExcel(dt, type){
     $('#exportModal .closex').off('click').on('click', function() {
         $('#exportModal').modal('hide');
     });
-
-
 }
-
 function ExportReport(dt, type){
 
 
@@ -1069,12 +1038,37 @@ if (is_airline == 1) {
 }
 
 
-
+function ExportAllRowsToExcel(dt) {
+    $.ajax({
+        url: '/allexport', // URL маршрута
+        type: 'GET',      // Метод запроса
+        data: {},          // Данные для отправки (в данном случае пустой объект, так как метод ничего не принимает)
+        dataType: 'json',  // Ожидаемый тип ответа
+        success: function(response) {
+            // Обработка успешного ответа
+            console.log('Успех:', response);
+            if (response.status) {
+                alert('Ответ от сервера: ' + response.response); // Выведет "test"
+            }
+        },
+        error: function(xhr, status, error) {
+            // Обработка ошибки
+            console.error('Ошибка:', status, error);
+            alert('Произошла ошибка при выполнении запроса');
+        }
+    });
+}
 
 
 // Кнопки
 var buttons = [
-
+    {
+        text: 'Экспорт всех строк в Excel',
+        className: 'btn-fa-file-excel-all',
+        action: function(e, dt, node, config) {
+            window.location.href = '/allexport';
+        }
+    },
 // Показать строк
 { extend: 'pageLength' },
 // Видимость столбцов
@@ -1396,7 +1390,14 @@ var buttons = [
 
 },
 
-
+{
+    className: 'btn-fa-file-excel',
+    text: 'Кнопка',
+    action: function(e, dt, node, config) {
+        // Что происходит при клике
+    alert('Кнопка нажата!');
+    }
+},
 
 
 
