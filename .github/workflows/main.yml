@@ -3,7 +3,7 @@ name: Test deploy
 on:
   push:
     branches:
-      - zhiger
+      - leondesert
 
 jobs:
   deploy:

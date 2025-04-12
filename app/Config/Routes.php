@@ -133,7 +133,7 @@ $routes->post('/bigexport', 'BigExportController::exportData');
 $routes->post('/summaryTable', 'BigExportController::summaryTable');
 $routes->get('/download/(:any)', 'BigExportController::download/$1');
 $routes->get('/cancelExport', 'BigExportController::cancelExport');
-$routes->get('/allexport', 'BigExportController::allExport');
+$routes->post('/allexport', 'BigExportController::allExport');
 
 
 $routes->get('/transactions', 'Transactions::index');

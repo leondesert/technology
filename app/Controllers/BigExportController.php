@@ -193,24 +193,8 @@ class BigExportController extends Controller
         // Определение нужных полей
         $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
 
-        
-
-
         // Заголовки
         $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
-
-
-
-
-
-
-        // добавить уникальные значения tax
-
-        // $uniqueTax = [
-        //     'A2', 'AE', 'CN', 'CP', 'CS', 'DE', 'E3', 'F6', 'FX', 
-        //     'GE', 'I6', 'IO', 'IR', 'JA', 'JN', 'M6', 'OY', 'RA', 
-        //     'T2', 'TP', 'TR', 'UJ', 'UZ', 'YQ', 'YR', 'ZR', 'ZZ'
-        // ];
 
         $uniqueTax = session()->get('uniqueTaxCodes');
     
@@ -219,6 +203,7 @@ class BigExportController extends Controller
         $uniqueTaxCodes = array_map(function($code) {
             return 'taxes_unics.' . $code;
         }, $uniqueTax);
+
 
         $ticketsFields = array_merge($ticketsFields, $uniqueTaxCodes);
         $headers = array_merge($headers, $uniqueTax);
@@ -283,7 +268,6 @@ class BigExportController extends Controller
         $builder->join('emd', 'emd.tickets_id = tickets.tickets_id', 'left');
         $builder->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
-
         $builder->join('taxes_unics', 'taxes_unics.tickets_id = tickets.tickets_id', 'left');
         
 
@@ -292,7 +276,7 @@ class BigExportController extends Controller
         $builder = $this->filter_tickets($params, $builder);
 
 
-        //Конструктор
+        // Конструктор
         $builder = $this->Сonstructor($builder, $criteria, $logic);
         
 
@@ -400,8 +384,6 @@ class BigExportController extends Controller
                         
                     }
 
-
-
                     if ($type == "SALE" || $type == "REFUND" || $type == "EXCHANGE") {
 
                         $rewardV = $t['tickets_FARE'] * $rewardValue / 100;
@@ -411,10 +393,6 @@ class BigExportController extends Controller
                         $groupedData[$type][$k]['reward_procent'] = round($rewardValue, 2); // $rewardValue
 
                     }
-                    
-
-
-
                     
                     
                     // значения для полей tax
@@ -2567,114 +2545,39 @@ class BigExportController extends Controller
 
     public function allExport()
     {
-        // Initialize model
-        $model = new TicketsModel();
+        // получить параметры из пост запроса
+        $params = $this->request->getPost();
 
-        // Retrieve POST parameters
-        $start_date = $this->request->getPost('start_date');
-        $end_date = $this->request->getPost('end_date');
-        $ids = $this->request->getPost('key');
-        $colum_name = $this->request->getPost('colum_name') ? 'tickets.' . $this->request->getPost('colum_name') : null;
-        $searchBuilder = $this->request->getPost('sss') ? json_decode($this->request->getPost('sss'), true) : null;
+        $getData = $this->getData($params);
+        $data = $getData['data'];
+        $filteredHeaders = $getData['filteredHeaders'];
 
-        // Fetch only the first 10 rows
-        $data = $model->getData($start_date, $end_date, $ids, $colum_name, $searchBuilder);
 
-        // Define headers
-        $headers = [
-            'Тип билета' => 'tickets.tickets_type',
-            'Валюта билета' => 'tickets.tickets_currency',
-            'Дата формирования' => 'tickets.tickets_dealdate',
-            'Время формирования' => 'tickets.tickets_dealtime',
-            'Тип операции' => 'tickets.tickets_OPTYPE',
-            'Тип транзакции' => 'tickets.tickets_TRANS_TYPE',
-            'Номер билета' => 'tickets.tickets_BSONUM',
-            'Номер старшего билета' => 'tickets.tickets_EX_BSONUM',
-            'Номер основного билета' => 'tickets.tickets_TO_BSONUM',
-            'Тариф цена' => 'tickets.tickets_FARE',
-            'PNR' => 'tickets.tickets_PNR_LAT',
-            'Дата оформления' => 'tickets.tickets_DEAL_date',
-            'Индентификатор продавца' => 'tickets.tickets_DEAL_disp',
-            'Время оформления' => 'tickets.tickets_DEAL_time',
-            'Время оформления UTC' => 'tickets.tickets_DEAL_utc',
-            'Сумма обмена без EMD' => 'tickets.summa_no_found',
-            'Код оператора' => 'opr.opr_code',
-            'Код агентства' => 'agency.agency_code',
-            'Сумма EMD' => 'emd.emd_value',
-            'Вид оплаты' => 'fops.fops_type',
-            'Сумма оплаты' => 'fops.fops_amount',
-            'ФИО' => 'passengers.fio',
-            'Паспорт' => 'passengers.pass',
-            'Тип' => 'passengers.pas_type',
-            'Гражданство' => 'passengers.citizenship',
-            'Маршрут' => 'segments.citycodes',
-            'Перевозчик' => 'segments.carrier',
-            'Класс' => 'segments.class',
-            'Рейс' => 'segments.reis',
-            'Дата полёта' => 'segments.flydate',
-            'Время полёта' => 'segments.flytime',
-            'Тариф' => 'segments.basicfare',
-            'Код ППР' => 'stamp.stamp_code',
-            'Код пульта' => 'tap.tap_code',
-            'Код сбора' => 'taxes.tax_code',
-            'Сумма сбора' => 'taxes.tax_amount',
-            'Суммы сборов' => 'taxes.tax_amount_main',
-        ];
-
-        // Create new spreadsheet
+        // создать spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Set headers
-        $column = 'A';
-        foreach ($headers as $displayName => $field) {
-            $sheet->setCellValue($column . '1', $displayName);
-            $column++;
-        }
 
-        // Add data (up to 10 rows)
-        $row = 2;
-        foreach ($data as $item) {
-            $column = 'A';
-            foreach ($headers as $displayName => $field) {
-                $fieldParts = explode('.', $field);
-                $fieldName = count($fieldParts) > 1 ? $fieldParts[1] : $fieldParts[0];
-                $value = $item[$fieldName] ?? null;
-                $sheet->setCellValue($column . $row, $value);
-                $column++;
-            }
-            $row++;
-        }
+        // добавить заголовки
+        $sheet->fromArray($filteredHeaders, null, 'A1');
 
-        // Auto-size columns
-        foreach (range('A', \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers))) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+        // добавить данных
+        $sheet->fromArray($data, null, 'A2');
 
-        // Generate file
+        // генерация file
         $writer = new Xlsx($spreadsheet);
-        $filename = 'exported_tickets_' . date('Ymd_His') . '.xlsx';
+        $filename = 'export_' . date('Ymd_His') . '.xlsx';
         $filePath = WRITEPATH . 'exports/' . $filename;
-        if (!is_dir(WRITEPATH . 'exports')) {
-            mkdir(WRITEPATH . 'exports', 0777, true);
-        }
         $writer->save($filePath);
 
-        // Return file for download
-        return $this->response
-            ->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            ->setHeader('Content-Disposition', 'attachment;filename="' . $filename . '"')
-            ->setHeader('Cache-Control', 'max-age=0')
-            ->setBody(file_get_contents($filePath));
+        return $this->response->setJSON([
+            'status' => true,
+            'downloadUrl' => base_url('download/' . $filename), 
+            'params' => $params,
+            'data' => $data,
+        ]);
     }
     
     
-    // Функция для генерации строки из объекта writer
-    private function writeSpreadsheetToString($writer): string
-    {
-        ob_start();
-        $writer->save('php://output');
-        return ob_get_clean();
-    }
 }
 

@@ -344,16 +344,6 @@ var ruLanguage = {
     "thousands": " "
 };
 
-
-
-function getFilterParams(params) {
-    var filterParams = {};
-    if (params.searchBuilder && params.searchBuilder.criteria) {
-        filterParams.searchBuilder = params.searchBuilder;
-    }
-    return filterParams;
-}
-
 function updateSavedFiltersSelect() {
 
   $.ajax({
@@ -472,54 +462,6 @@ function formatMoney2(number) {
     }).format(number);
 }
 
-// получить декаду
-function getDecadeDates(todayDate) {
-    const date = new Date(todayDate);
-    const dayOfMonth = date.getDate();
-    const decade = Math.ceil(dayOfMonth / 10);
-
-    // Установите день месяца на 1, чтобы получить первый день месяца
-    date.setDate(1);
-
-    // Вычисляем первый день декады
-    const firstDayOfDecade = new Date(date);
-    firstDayOfDecade.setDate((decade - 1) * 10 + 1);
-
-    // Вычисляем последний день декады
-    const tenthDayOfDecade = new Date(firstDayOfDecade);
-    if (decade < 3) {
-        // Для первой и второй декады добавляем 9 дней
-        tenthDayOfDecade.setDate(tenthDayOfDecade.getDate() + 9);
-    } else {
-        // Для третьей декады перемещаемся к последнему дню месяца
-        tenthDayOfDecade.setMonth(tenthDayOfDecade.getMonth() + 1);
-        tenthDayOfDecade.setDate(0); // 0 в setDate переносит на последний день предыдущего месяца
-    }
-
-    // Форматируем даты в формате YYYY-MM-DD
-    const formatDate = (date) => date.toISOString().split('T')[0];
-
-
-    const DefaultFilter = {
-                "criteria": [
-                    {
-                        "condition": "between",
-                        "data": "Дата формирования",
-                        "origData": "tickets.tickets_dealdate",
-                        "type": "date",
-                        "value": [
-                            formatDate(firstDayOfDecade),
-                            formatDate(tenthDayOfDecade)
-                        ]
-                    }
-                ],
-                "logic": "AND"
-    };
-
-    return DefaultFilter;
-}
-
-
 
 function ExportExcel(dt, type) {
     if (confirm('Уверены что хотите сделать экспорт?')) {
@@ -605,6 +547,7 @@ function ExportExcel(dt, type) {
         $('#exportModal').modal('hide');
     });
 }
+
 function ExportReport(dt, type){
 
 
@@ -945,10 +888,6 @@ function ExportReport(dt, type){
 }
 
 
-// DefaultFilter
-// let todayDate = new Date();
-// var DefaultFilter = getDecadeDates(todayDate);
-// var searchBuilderParams = getDecadeDates(todayDate);
 
 var DefaultFilter = {
                 "criteria": [
@@ -964,11 +903,7 @@ var DefaultFilter = {
                     }
                 ],
                 "logic": "AND"
-    };
-
-// console.log('decade_start_date', decade_start_date);
-// console.log('start_date', start_date);
-
+};
 var searchBuilderParams = {};
 
 
@@ -1038,26 +973,7 @@ if (is_airline == 1) {
 }
 
 
-function ExportAllRowsToExcel(dt) {
-    $.ajax({
-        url: '/allexport', // URL маршрута
-        type: 'GET',      // Метод запроса
-        data: {},          // Данные для отправки (в данном случае пустой объект, так как метод ничего не принимает)
-        dataType: 'json',  // Ожидаемый тип ответа
-        success: function(response) {
-            // Обработка успешного ответа
-            console.log('Успех:', response);
-            if (response.status) {
-                alert('Ответ от сервера: ' + response.response); // Выведет "test"
-            }
-        },
-        error: function(xhr, status, error) {
-            // Обработка ошибки
-            console.error('Ошибка:', status, error);
-            alert('Произошла ошибка при выполнении запроса');
-        }
-    });
-}
+
 
 
 // Кнопки
@@ -1066,32 +982,44 @@ var buttons = [
         text: 'Экспорт всех строк в Excel',
         className: 'btn-fa-file-excel-all',
         action: function(e, dt, node, config) {
+            
             var params = dt.ajax.params();
-            var searchBuilder = params.searchBuilder || {};
 
-            var postData = {
-                start_date: document.getElementById('startDate').value,
-                end_date: document.getElementById('endDate').value,
-                key: params.key || '',
-                colum_name: params.colum_name || '',
-                sss: JSON.stringify(searchBuilder)
-            };
+            params['type'] = 'default';
+            params['start_date'] = document.getElementById('startDate').value;
+            params['end_date'] = document.getElementById('endDate').value;
+            params['user_login'] = document.getElementById('user_login').value;
+            params['currency'] = document.getElementById('currency').value;
+            params['name_table'] = document.getElementById('name_table').value;
+            params['value_table'] = document.getElementById('value_table').value;
+
+            var columnVisibility = dt.columns().visible().toArray();
+            var columnNames = dt.columns().header().toArray().map(function(header) {
+                return $(header).text().trim();
+            });
+            var visibleColumnNames = columnNames.filter(function(name, index) {
+                return columnVisibility[index];
+            });
+            var visibleColumnsParam = visibleColumnNames.join(',');
+
+            params['visibleColumns'] = visibleColumnsParam;
+
+            $('#exportModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+    
+            $('#exportModal #downloadButton').hide();
+            $('#exportModal #loadingAnimation').show();
+            $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
 
             $.ajax({
                 url: '/allexport',
                 method: 'POST',
-                data: postData,
+                data: params,
                 success: function(data) {
                     if (data.status === 'queued') {
                         var taskId = data.taskId;
-                        $('#exportModal').modal({
-                            backdrop: 'static',
-                            keyboard: false
-                        });
-                        $('#exportModal #downloadButton').hide();
-                        $('#exportModal #loadingAnimation').show();
-                        $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
-
                         var checkStatus = setInterval(function() {
                             $.ajax({
                                 url: '/checkExportStatus',
@@ -1439,26 +1367,8 @@ var buttons = [
 
 },
 
-{
-    className: 'btn-fa-file-excel',
-    text: 'Кнопка',
-    action: function(e, dt, node, config) {
-        // Что происходит при клике
-    alert('Кнопка нажата!');
-    }
-},
-
-
 
 ];
-
-
-
-
-
-
-
-
 
 
 
@@ -1522,18 +1432,6 @@ var columns = [
         { data: 'custom.penalty', searchable: false, orderable: false, title: 'Штраф'},
         
 ];
-
-
-
-// var uniqueTaxCodes = [
-//             'A2', 'AE', 'CN', 'CP', 'CS', 'DE', 'E3', 'F6', 'FX', 
-//             'GE', 'I6', 'IO', 'IR', 'JA', 'JN', 'M6', 'OY', 'RA', 
-//             'T2', 'TP', 'TR', 'UJ', 'UZ', 'YQ', 'YR', 'ZR', 'ZZ'
-//         ];
-
-
-// console.log(uniqueTaxCodes);
-
 
 
 
