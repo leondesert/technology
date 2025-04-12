@@ -852,13 +852,7 @@ class BigExportController extends Controller
         //     $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setAutoSize(true);
         // }
 
-        
-
-
-
-
-
-
+    
 
         //  ============================  Создание листа ACQUIRING ====================== //
 
@@ -1329,7 +1323,6 @@ class BigExportController extends Controller
         return 0.0;
     }
 
-
     public function report($params, $balance)
     {
 
@@ -1714,7 +1707,6 @@ class BigExportController extends Controller
         return $result;
     }
 
-
     public function exception($t, $table_name, $results_table, $results_rewards, $method)
     {
         $reward = null;
@@ -1816,7 +1808,6 @@ class BigExportController extends Controller
 
         return $reward;
     }
-
 
     public function reportGetTransactions($params, $table_name)
     {
@@ -1941,8 +1932,6 @@ class BigExportController extends Controller
         }
     }
 
-    
-
     public function get_balance($table_name, $params)
     {
         $c_name = $table_name.'_id';
@@ -2065,7 +2054,6 @@ class BigExportController extends Controller
         ]);
     }
 
-
     public function getFistBalanceNewMethod($params)
     {
         // 1. получить параметры
@@ -2123,7 +2111,6 @@ class BigExportController extends Controller
         return $response;
     }
 
-
     public function for_summaryTable($params)
     {
         // ============= задача ================== //
@@ -2165,16 +2152,6 @@ class BigExportController extends Controller
         return $result;
 
     }
-
-    // public function report_get($params)
-    // {
-
-    //     $OTCHET = $this->getBalanceFirst($params);
-    //     $OTCHET = $this->report($params, $OTCHET['8']);
-    
-
-    //     return $OTCHET;
-    // }
 
     public function if_four_params($criteria)
     {
