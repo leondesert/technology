@@ -344,6 +344,7 @@ var ruLanguage = {
     "thousands": " "
 };
 
+
 function updateSavedFiltersSelect() {
 
   $.ajax({
@@ -478,7 +479,6 @@ function ExportExcel(dt, type, url){
 
 
       var columnVisibility = dt.columns().visible().toArray();
-      var filterParams = getFilterParams(params);
       
       
       // Получаем названия всех столбцов
