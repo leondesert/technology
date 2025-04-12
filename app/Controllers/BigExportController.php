@@ -19,6 +19,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use App\Models\ServicesModel;
 use App\Models\TransactionsModel;
 use App\Models\UserModel;
+use App\Models\TicketsModel;
 use App\Models\AgencyModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
@@ -192,24 +193,8 @@ class BigExportController extends Controller
         // Определение нужных полей
         $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
 
-        
-
-
         // Заголовки
         $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
-
-
-
-
-
-
-        // добавить уникальные значения tax
-
-        // $uniqueTax = [
-        //     'A2', 'AE', 'CN', 'CP', 'CS', 'DE', 'E3', 'F6', 'FX', 
-        //     'GE', 'I6', 'IO', 'IR', 'JA', 'JN', 'M6', 'OY', 'RA', 
-        //     'T2', 'TP', 'TR', 'UJ', 'UZ', 'YQ', 'YR', 'ZR', 'ZZ'
-        // ];
 
         $uniqueTax = session()->get('uniqueTaxCodes');
     
@@ -218,6 +203,7 @@ class BigExportController extends Controller
         $uniqueTaxCodes = array_map(function($code) {
             return 'taxes_unics.' . $code;
         }, $uniqueTax);
+
 
         $ticketsFields = array_merge($ticketsFields, $uniqueTaxCodes);
         $headers = array_merge($headers, $uniqueTax);
@@ -282,7 +268,6 @@ class BigExportController extends Controller
         $builder->join('emd', 'emd.tickets_id = tickets.tickets_id', 'left');
         $builder->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
-
         $builder->join('taxes_unics', 'taxes_unics.tickets_id = tickets.tickets_id', 'left');
         
 
@@ -291,7 +276,7 @@ class BigExportController extends Controller
         $builder = $this->filter_tickets($params, $builder);
 
 
-        //Конструктор
+        // Конструктор
         $builder = $this->Сonstructor($builder, $criteria, $logic);
         
 
@@ -399,8 +384,6 @@ class BigExportController extends Controller
                         
                     }
 
-
-
                     if ($type == "SALE" || $type == "REFUND" || $type == "EXCHANGE") {
 
                         $rewardV = $t['tickets_FARE'] * $rewardValue / 100;
@@ -410,10 +393,6 @@ class BigExportController extends Controller
                         $groupedData[$type][$k]['reward_procent'] = round($rewardValue, 2); // $rewardValue
 
                     }
-                    
-
-
-
                     
                     
                     // значения для полей tax
@@ -873,13 +852,7 @@ class BigExportController extends Controller
         //     $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setAutoSize(true);
         // }
 
-        
-
-
-
-
-
-
+    
 
         //  ============================  Создание листа ACQUIRING ====================== //
 
@@ -1350,7 +1323,6 @@ class BigExportController extends Controller
         return 0.0;
     }
 
-
     public function report($params, $balance)
     {
 
@@ -1735,7 +1707,6 @@ class BigExportController extends Controller
         return $result;
     }
 
-
     public function exception($t, $table_name, $results_table, $results_rewards, $method)
     {
         $reward = null;
@@ -1837,7 +1808,6 @@ class BigExportController extends Controller
 
         return $reward;
     }
-
 
     public function reportGetTransactions($params, $table_name)
     {
@@ -1962,8 +1932,6 @@ class BigExportController extends Controller
         }
     }
 
-    
-
     public function get_balance($table_name, $params)
     {
         $c_name = $table_name.'_id';
@@ -2086,7 +2054,6 @@ class BigExportController extends Controller
         ]);
     }
 
-
     public function getFistBalanceNewMethod($params)
     {
         // 1. получить параметры
@@ -2144,7 +2111,6 @@ class BigExportController extends Controller
         return $response;
     }
 
-
     public function for_summaryTable($params)
     {
         // ============= задача ================== //
@@ -2186,16 +2152,6 @@ class BigExportController extends Controller
         return $result;
 
     }
-
-    // public function report_get($params)
-    // {
-
-    //     $OTCHET = $this->getBalanceFirst($params);
-    //     $OTCHET = $this->report($params, $OTCHET['8']);
-    
-
-    //     return $OTCHET;
-    // }
 
     public function if_four_params($criteria)
     {
@@ -2423,7 +2379,7 @@ class BigExportController extends Controller
         // Возвращаем ответ
         return $this->response->setJSON(['success' => true, 'data' => $data]);
     }
-    
+  
     public function calculateSummary()
     {   
 
@@ -2564,8 +2520,41 @@ class BigExportController extends Controller
             ];
     }
 
+    public function allExport()
+    {
+        // получить параметры из пост запроса
+        $params = $this->request->getPost();
+
+        $getData = $this->getData($params);
+        $data = $getData['data'];
+        $filteredHeaders = $getData['filteredHeaders'];
 
 
+        // создать spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
+
+        // добавить заголовки
+        $sheet->fromArray($filteredHeaders, null, 'A1');
+
+        // добавить данных
+        $sheet->fromArray($data, null, 'A2');
+
+        // генерация file
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'export_' . date('Ymd_His') . '.xlsx';
+        $filePath = WRITEPATH . 'exports/' . $filename;
+        $writer->save($filePath);
+
+        return $this->response->setJSON([
+            'status' => true,
+            'downloadUrl' => base_url('download/' . $filename), 
+            'params' => $params,
+            'data' => $data,
+        ]);
+    }
+    
+    
 }
 
