@@ -1005,6 +1005,296 @@ if (is_airline == 1) {
 
 // Кнопки
 var buttons = [
+    
+    // Показать строк
+    { extend: 'pageLength' },
+
+    // Видимость столбцов
+    { extend: 'colvis', text: 'Видимость столбцов', },
+
+    // Управления фильтрами
+    {
+    text: 'Управление фильтрами',
+    action: function ( e, dt, node, config ) {
+
+        updateSavedFiltersSelect();
+
+        $("#filterModalLabel").text("Управления фильтрами");
+    
+        $('#saveFilterModal').modal('show');
+
+        
+        // Сохранить
+        $('#save-filter').off('click').on('click', function() {
+        $.ajax({
+                url: '/users/get_tables_states', 
+                method: 'POST', 
+                data: null,
+                dataType: 'json',
+                success: function(response) {
+                // console.log(JSON.parse(response.tables_states));
+
+                var filterName = $('#filter-name').val().trim();
+                if (!filterName) {
+                    alert('Пожалуйста, введите имя фильтра.');
+                    return;
+                }
+
+                var filters = JSON.parse(response.tables_states) || {};
+                if (filters[filterName]) {
+                    if (!confirm('Фильтр с таким именем уже существует. Перезаписать?')) {
+                    return; 
+                    }
+                }
+
+                
+                // Получаем состояние SearchBuilder
+                var state = table.searchBuilder.getDetails();
+
+
+                // Сохраняем состояние фильтра под выбранным именем
+                filters[filterName] = state;
+                
+
+                // console.log(state);
+
+                
+                // отправка на сервер
+                savedFilters(filters, updateSavedFiltersSelect); 
+
+                
+
+                // Очистка поля ввода
+                $('#filter-name').val('');
+
+                }
+
+        });         
+        });
+
+        
+        // Применить
+        $('#apply-filter').off('click').on('click', function() {
+        
+            $('#saveFilterModal').modal('hide');
+
+            $.ajax({
+                url: '/users/get_tables_states', 
+                method: 'POST', 
+                dataType: 'json',
+                success: function(response) {
+                    
+                    // console.log(JSON.parse(response.tables_states));
+
+                
+                    var selectedFilterName = $('#savedFiltersSelect').val();
+                    if (selectedFilterName) {
+                        var filters = JSON.parse(response.tables_states);
+                        var selectedFilterState = filters[selectedFilterName];
+                        if (selectedFilterState) {
+
+                            // Применение фильтра
+                            table.searchBuilder.rebuild(selectedFilterState);
+                            
+                            // console.log("Применен фильтр:", selectedFilterState);
+                            
+                        }
+                    } else {
+                        alert('Пожалуйста, выберите фильтр для применения.');
+                    }
+
+
+                }
+
+            });
+        });
+
+
+        // Удалить
+        $('#delete-filter').off('click').on('click', function() {
+            $.ajax({
+            url: '/users/get_tables_states', 
+            method: 'POST', 
+            data: null,
+            dataType: 'json',
+            success: function(response) {
+                var selectedFilterName = $('#savedFiltersSelect').val();
+                if (selectedFilterName && confirm('Вы уверены, что хотите удалить выбранный фильтр?')) {
+                var filters = JSON.parse(response.tables_states);
+                if (filters && filters[selectedFilterName]) {
+                    delete filters[selectedFilterName]; // Удаление выбранного фильтра
+                    savedFilters(filters, updateSavedFiltersSelect); 
+                } else {
+                    alert('Ошибка при удалении фильтра. Возможно, фильтр уже был удален.');
+                }
+                }
+            }
+            });
+        });
+
+        // Сброс
+        $('#sbros-filter').off('click').on('click', function() {
+        
+            $('#saveFilterModal').modal('hide');
+
+            // Применение фильтра
+            table.searchBuilder.rebuild(DefaultFilter);
+            // console.log("Применен фильтр:", DefaultFilter);
+
+        });
+
+
+    }
+    },
+
+    // Управления колонками
+    {
+    text: 'Управление колонками',
+    action: function ( e, dt, node, config ) {
+
+        updatecolReorder();
+
+        $("#filterModalLabel").text("Управления колонками");
+        $('#sbros-filter').show();
+        $('#saveFilterModal').modal('show');
+
+        // Сохранить
+        $('#save-filter').off('click').on('click', function() {
+        $.ajax({
+                url: '/users/get_colreorder', 
+                method: 'POST',
+                dataType: 'json',
+                success: function(response) {
+
+                // console.log(JSON.parse(response));
+
+                var filterName = $('#filter-name').val().trim();
+                if (!filterName) {
+                    alert('Пожалуйста, введите имя настройки.');
+                    return;
+                }
+
+                var filters = JSON.parse(response.colReorder) || {};
+                if (filters[filterName]) {
+                    if (!confirm('Настройка с таким именем уже существует. Перезаписать?')) {
+                    return; 
+                    }
+                }
+
+                // Инициализируем чтобы добавить ключ
+                if (!filters[filterName]) {
+                    filters[filterName] = {};
+                }
+                
+                // Сохраняем расположения колонок 
+                filters[filterName]['colReorder'] = table.colReorder.order();
+
+                // Сохраняем видимость колонок 
+                filters[filterName]['columnVisibility'] = table.columns().visible().toArray();
+                
+
+                // отправка на сервер
+                savedcolReorder(filters, updatecolReorder); 
+
+                
+                // Очистка поля ввода
+                $('#filter-name').val('');
+
+                }
+
+        });                               
+        });
+
+        
+        // Применить
+        $('#apply-filter').off('click').on('click', function() {
+        
+            $('#saveFilterModal').modal('hide');
+
+            $.ajax({
+                url: '/users/get_colreorder', 
+                method: 'POST', 
+                data: null,
+                dataType: 'json',
+                success: function(response) {
+                    // console.log('Применить');
+                    // console.log(JSON.parse(response.colReorder));
+
+                
+                    var selectedFilterName = $('#savedFiltersSelect').val();
+                    if (selectedFilterName) {
+                        var filters = JSON.parse(response.colReorder);
+                        var selectedFilterState = filters[selectedFilterName]['colReorder'];
+                        var columnVisibility = filters[selectedFilterName]['columnVisibility'];
+
+                        if (selectedFilterState) {
+                            // Применение фильтра
+                            table.colReorder.order(selectedFilterState);
+                            // console.log("Применен фильтр:", selectedFilterState);
+                        }
+
+
+                        if (columnVisibility) {
+                        // Применение настроек видимости к каждому столбцу
+                        columnVisibility.forEach(function(visible, index) {
+                            table.column(index).visible(visible);
+                        });
+                        }
+
+
+                    } else {
+                        alert('Пожалуйста, выберите фильтр для применения.');
+                    }
+
+
+                }
+
+            });
+        });
+
+
+        // Удалить
+        $('#delete-filter').off('click').on('click', function() {
+            $.ajax({
+            url: '/users/get_colreorder', 
+            method: 'POST', 
+            data: null,
+            dataType: 'json',
+            success: function(response) {
+                var selectedFilterName = $('#savedFiltersSelect').val();
+                if (selectedFilterName && confirm('Вы уверены, что хотите удалить выбранный фильтр?')) {
+                var filters = JSON.parse(response.colReorder);
+                if (filters && filters[selectedFilterName]) {
+                    delete filters[selectedFilterName]; // Удаление выбранного фильтра
+                    savedcolReorder(filters, updatecolReorder); 
+                } else {
+                    alert('Ошибка при удалении фильтра. Возможно, фильтр уже был удален.');
+                }
+                }
+            }
+            });
+        });
+
+        // Сбросить
+        $('#sbros-filter').off('click').on('click', function() {
+
+            $('#saveFilterModal').modal('hide');
+
+            table.colReorder.reset();
+
+            // Сделать все столбцы видимыми
+            table.columns().every(function() {
+                this.visible(true);
+            });
+
+        });
+
+
+
+    }
+    },
+
+    // Экспорт в Excel
     {
         text: 'Экспорт в Excel',
         className: 'btn-fa-file-excel-all',
@@ -1015,335 +1305,27 @@ var buttons = [
             
         }
     },
-// Показать строк
-{ extend: 'pageLength' },
-// Видимость столбцов
-{ extend: 'colvis', text: 'Видимость столбцов', },
 
-// Управления фильтрами
-{
-  text: 'Управление фильтрами',
-  action: function ( e, dt, node, config ) {
-
-    updateSavedFiltersSelect();
-
-    $("#filterModalLabel").text("Управления фильтрами");
-  
-    $('#saveFilterModal').modal('show');
-
-    
-    // Сохранить
-    $('#save-filter').off('click').on('click', function() {
-      $.ajax({
-            url: '/users/get_tables_states', 
-            method: 'POST', 
-            data: null,
-            dataType: 'json',
-            success: function(response) {
-              // console.log(JSON.parse(response.tables_states));
-
-              var filterName = $('#filter-name').val().trim();
-              if (!filterName) {
-                alert('Пожалуйста, введите имя фильтра.');
-                return;
-              }
-
-              var filters = JSON.parse(response.tables_states) || {};
-              if (filters[filterName]) {
-                if (!confirm('Фильтр с таким именем уже существует. Перезаписать?')) {
-                  return; 
-                }
-              }
-
-              
-              // Получаем состояние SearchBuilder
-              var state = table.searchBuilder.getDetails();
-
-
-              // Сохраняем состояние фильтра под выбранным именем
-              filters[filterName] = state;
-              
-
-              // console.log(state);
-
-              
-              // отправка на сервер
-              savedFilters(filters, updateSavedFiltersSelect); 
-
-              
-
-              // Очистка поля ввода
-              $('#filter-name').val('');
-
-            }
-
-      });         
-    });
-
-    
-    // Применить
-    $('#apply-filter').off('click').on('click', function() {
-      
-          $('#saveFilterModal').modal('hide');
-
-          $.ajax({
-            url: '/users/get_tables_states', 
-            method: 'POST', 
-            dataType: 'json',
-            success: function(response) {
-                
-                // console.log(JSON.parse(response.tables_states));
-
-              
-                var selectedFilterName = $('#savedFiltersSelect').val();
-                if (selectedFilterName) {
-                    var filters = JSON.parse(response.tables_states);
-                    var selectedFilterState = filters[selectedFilterName];
-                    if (selectedFilterState) {
-
-                        // Применение фильтра
-                        table.searchBuilder.rebuild(selectedFilterState);
-                        
-                        // console.log("Применен фильтр:", selectedFilterState);
-                        
-                    }
-                } else {
-                    alert('Пожалуйста, выберите фильтр для применения.');
-                }
-
-
-            }
-
-          });
-    });
-
-
-    // Удалить
-    $('#delete-filter').off('click').on('click', function() {
-        $.ajax({
-          url: '/users/get_tables_states', 
-          method: 'POST', 
-          data: null,
-          dataType: 'json',
-          success: function(response) {
-            var selectedFilterName = $('#savedFiltersSelect').val();
-            if (selectedFilterName && confirm('Вы уверены, что хотите удалить выбранный фильтр?')) {
-              var filters = JSON.parse(response.tables_states);
-              if (filters && filters[selectedFilterName]) {
-                delete filters[selectedFilterName]; // Удаление выбранного фильтра
-                savedFilters(filters, updateSavedFiltersSelect); 
-              } else {
-                alert('Ошибка при удалении фильтра. Возможно, фильтр уже был удален.');
-              }
-            }
-          }
-        });
-    });
-
-    // Сброс
-    $('#sbros-filter').off('click').on('click', function() {
-      
-          $('#saveFilterModal').modal('hide');
-
-          // Применение фильтра
-          table.searchBuilder.rebuild(DefaultFilter);
-          // console.log("Применен фильтр:", DefaultFilter);
-
-    });
-
-
-  }
-},
-
-// Управления колонками
-{
-  text: 'Управление колонками',
-  action: function ( e, dt, node, config ) {
-
-    updatecolReorder();
-
-    $("#filterModalLabel").text("Управления колонками");
-    $('#sbros-filter').show();
-    $('#saveFilterModal').modal('show');
-
-    // Сохранить
-    $('#save-filter').off('click').on('click', function() {
-      $.ajax({
-            url: '/users/get_colreorder', 
-            method: 'POST',
-            dataType: 'json',
-            success: function(response) {
-
-              // console.log(JSON.parse(response));
-
-              var filterName = $('#filter-name').val().trim();
-              if (!filterName) {
-                alert('Пожалуйста, введите имя настройки.');
-                return;
-              }
-
-              var filters = JSON.parse(response.colReorder) || {};
-              if (filters[filterName]) {
-                if (!confirm('Настройка с таким именем уже существует. Перезаписать?')) {
-                  return; 
-                }
-              }
-
-              // Инициализируем чтобы добавить ключ
-              if (!filters[filterName]) {
-                  filters[filterName] = {};
-              }
-             
-              // Сохраняем расположения колонок 
-              filters[filterName]['colReorder'] = table.colReorder.order();
-
-              // Сохраняем видимость колонок 
-              filters[filterName]['columnVisibility'] = table.columns().visible().toArray();
-              
-
-              // отправка на сервер
-              savedcolReorder(filters, updatecolReorder); 
-
-              
-              // Очистка поля ввода
-              $('#filter-name').val('');
-
-            }
-
-      });                               
-    });
-
-    
-    // Применить
-    $('#apply-filter').off('click').on('click', function() {
-      
-          $('#saveFilterModal').modal('hide');
-
-          $.ajax({
-            url: '/users/get_colreorder', 
-            method: 'POST', 
-            data: null,
-            dataType: 'json',
-            success: function(response) {
-                // console.log('Применить');
-                // console.log(JSON.parse(response.colReorder));
-
-              
-                var selectedFilterName = $('#savedFiltersSelect').val();
-                if (selectedFilterName) {
-                    var filters = JSON.parse(response.colReorder);
-                    var selectedFilterState = filters[selectedFilterName]['colReorder'];
-                    var columnVisibility = filters[selectedFilterName]['columnVisibility'];
-
-                    if (selectedFilterState) {
-                        // Применение фильтра
-                        table.colReorder.order(selectedFilterState);
-                        // console.log("Применен фильтр:", selectedFilterState);
-                    }
-
-
-                    if (columnVisibility) {
-                      // Применение настроек видимости к каждому столбцу
-                      columnVisibility.forEach(function(visible, index) {
-                          table.column(index).visible(visible);
-                      });
-                    }
-
-
-                } else {
-                    alert('Пожалуйста, выберите фильтр для применения.');
-                }
-
-
-            }
-
-          });
-    });
-
-
-    // Удалить
-    $('#delete-filter').off('click').on('click', function() {
-        $.ajax({
-          url: '/users/get_colreorder', 
-          method: 'POST', 
-          data: null,
-          dataType: 'json',
-          success: function(response) {
-            var selectedFilterName = $('#savedFiltersSelect').val();
-            if (selectedFilterName && confirm('Вы уверены, что хотите удалить выбранный фильтр?')) {
-              var filters = JSON.parse(response.colReorder);
-              if (filters && filters[selectedFilterName]) {
-                delete filters[selectedFilterName]; // Удаление выбранного фильтра
-                savedcolReorder(filters, updatecolReorder); 
-              } else {
-                alert('Ошибка при удалении фильтра. Возможно, фильтр уже был удален.');
-              }
-            }
-          }
-        });
-    });
-
-    // Сбросить
-    $('#sbros-filter').off('click').on('click', function() {
-
-        $('#saveFilterModal').modal('hide');
-
-        table.colReorder.reset();
-
-        // Сделать все столбцы видимыми
-        table.columns().every(function() {
-            this.visible(true);
-        });
-
-    });
-
-
-
-  }
-},
-
-//Экспорт
-{ extend: 'collection', autoClose: true, text: 'Экспорт', buttons: ['copy', 
-  { extend: 'excelHtml5', autoFilter: true,
-
-          customize: function ( xlsx ) {
-            var sheet = xlsx.xl.worksheets['sheet1.xml'];
-            // console.log(user_desc);
-            $('c[r=A1] t', sheet).text( user_desc );
-
-          }
-  }] },
-
-
-// Формировать отчет
-{
-    extend: 'collection',
-    className: 'btn-fa-file-export',
-    autoClose: true, 
-    text: 'Сформировать отчёт',
-    buttons: buttons_report
-},
-
-
-
-// Экспорт в Excel
-{
-    extend: 'collection',
-    className: 'btn-fa-file-excel',
-    autoClose: true, 
-    text: 'Сформировать отчёт в Excel',
-    buttons: buttons_excel
-
-},
-
+    // Формировать отчет
+    {
+        extend: 'collection',
+        className: 'btn-fa-file-export',
+        autoClose: true, 
+        text: 'Сформировать отчёт',
+        buttons: buttons_report
+    },
+
+    // Экспорт в Excel
+    {
+        extend: 'collection',
+        className: 'btn-fa-file-excel',
+        autoClose: true, 
+        text: 'Сформировать отчёт в Excel',
+        buttons: buttons_excel
+    },
 
 ];
 
-
-
-// Добавить класс кнопкам
-// $.fn.dataTable.Editor.classes.form.button = "btn";
-// $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn-success';
 
 
 
