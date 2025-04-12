@@ -2567,40 +2567,107 @@ class BigExportController extends Controller
 
     public function allExport()
     {
+        // Initialize model
+        $model = new TicketsModel();
 
-        // Пример: получаем данные из модели
-        $model = new TicketsModel(); // замените на свою модель
-        $data = $model->getData();
+        // Retrieve POST parameters
+        $start_date = $this->request->getPost('start_date');
+        $end_date = $this->request->getPost('end_date');
+        $ids = $this->request->getPost('key');
+        $colum_name = $this->request->getPost('colum_name') ? 'tickets.' . $this->request->getPost('colum_name') : null;
+        $searchBuilder = $this->request->getPost('sss') ? json_decode($this->request->getPost('sss'), true) : null;
 
-        // Создаем новый документ
+        // Fetch only the first 10 rows
+        $data = $model->getData($start_date, $end_date, $ids, $colum_name, $searchBuilder);
+
+        // Define headers
+        $headers = [
+            'Тип билета' => 'tickets.tickets_type',
+            'Валюта билета' => 'tickets.tickets_currency',
+            'Дата формирования' => 'tickets.tickets_dealdate',
+            'Время формирования' => 'tickets.tickets_dealtime',
+            'Тип операции' => 'tickets.tickets_OPTYPE',
+            'Тип транзакции' => 'tickets.tickets_TRANS_TYPE',
+            'Номер билета' => 'tickets.tickets_BSONUM',
+            'Номер старшего билета' => 'tickets.tickets_EX_BSONUM',
+            'Номер основного билета' => 'tickets.tickets_TO_BSONUM',
+            'Тариф цена' => 'tickets.tickets_FARE',
+            'PNR' => 'tickets.tickets_PNR_LAT',
+            'Дата оформления' => 'tickets.tickets_DEAL_date',
+            'Индентификатор продавца' => 'tickets.tickets_DEAL_disp',
+            'Время оформления' => 'tickets.tickets_DEAL_time',
+            'Время оформления UTC' => 'tickets.tickets_DEAL_utc',
+            'Сумма обмена без EMD' => 'tickets.summa_no_found',
+            'Код оператора' => 'opr.opr_code',
+            'Код агентства' => 'agency.agency_code',
+            'Сумма EMD' => 'emd.emd_value',
+            'Вид оплаты' => 'fops.fops_type',
+            'Сумма оплаты' => 'fops.fops_amount',
+            'ФИО' => 'passengers.fio',
+            'Паспорт' => 'passengers.pass',
+            'Тип' => 'passengers.pas_type',
+            'Гражданство' => 'passengers.citizenship',
+            'Маршрут' => 'segments.citycodes',
+            'Перевозчик' => 'segments.carrier',
+            'Класс' => 'segments.class',
+            'Рейс' => 'segments.reis',
+            'Дата полёта' => 'segments.flydate',
+            'Время полёта' => 'segments.flytime',
+            'Тариф' => 'segments.basicfare',
+            'Код ППР' => 'stamp.stamp_code',
+            'Код пульта' => 'tap.tap_code',
+            'Код сбора' => 'taxes.tax_code',
+            'Сумма сбора' => 'taxes.tax_amount',
+            'Суммы сборов' => 'taxes.tax_amount_main',
+        ];
+
+        // Create new spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-    
-        // Устанавливаем заголовки таблицы
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Название');
-        $sheet->setCellValue('C1', 'Статус');
-    
-        // Добавляем данные
+
+        // Set headers
+        $column = 'A';
+        foreach ($headers as $displayName => $field) {
+            $sheet->setCellValue($column . '1', $displayName);
+            $column++;
+        }
+
+        // Add data (up to 10 rows)
         $row = 2;
         foreach ($data as $item) {
-            $sheet->setCellValue('A' . $row, $item['tickets_id']);
-            $sheet->setCellValue('B' . $row, $item['tickets_type']); // замените на свои поля
-            $sheet->setCellValue('C' . $row, $item['tickets_currency']);
+            $column = 'A';
+            foreach ($headers as $displayName => $field) {
+                $fieldParts = explode('.', $field);
+                $fieldName = count($fieldParts) > 1 ? $fieldParts[1] : $fieldParts[0];
+                $value = $item[$fieldName] ?? null;
+                $sheet->setCellValue($column . $row, $value);
+                $column++;
+            }
             $row++;
         }
-    
-        // Генерируем файл
+
+        // Auto-size columns
+        foreach (range('A', \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers))) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Generate file
         $writer = new Xlsx($spreadsheet);
-        $filename = 'exported_tasks_' . date('Ymd_His') . '.xlsx';
-    
-        // Устанавливаем заголовки для скачивания
+        $filename = 'exported_tickets_' . date('Ymd_His') . '.xlsx';
+        $filePath = WRITEPATH . 'exports/' . $filename;
+        if (!is_dir(WRITEPATH . 'exports')) {
+            mkdir(WRITEPATH . 'exports', 0777, true);
+        }
+        $writer->save($filePath);
+
+        // Return file for download
         return $this->response
             ->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             ->setHeader('Content-Disposition', 'attachment;filename="' . $filename . '"')
             ->setHeader('Cache-Control', 'max-age=0')
-            ->setBody($this->writeSpreadsheetToString($writer));
+            ->setBody(file_get_contents($filePath));
     }
+    
     
     // Функция для генерации строки из объекта writer
     private function writeSpreadsheetToString($writer): string

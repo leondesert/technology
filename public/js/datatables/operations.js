@@ -1066,7 +1066,56 @@ var buttons = [
         text: 'Экспорт всех строк в Excel',
         className: 'btn-fa-file-excel-all',
         action: function(e, dt, node, config) {
-            window.location.href = '/allexport';
+            var params = dt.ajax.params();
+            var searchBuilder = params.searchBuilder || {};
+
+            var postData = {
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                key: params.key || '',
+                colum_name: params.colum_name || '',
+                sss: JSON.stringify(searchBuilder)
+            };
+
+            $.ajax({
+                url: '/allexport',
+                method: 'POST',
+                data: postData,
+                success: function(data) {
+                    if (data.status === 'queued') {
+                        var taskId = data.taskId;
+                        $('#exportModal').modal({
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+                        $('#exportModal #downloadButton').hide();
+                        $('#exportModal #loadingAnimation').show();
+                        $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
+
+                        var checkStatus = setInterval(function() {
+                            $.ajax({
+                                url: '/checkExportStatus',
+                                method: 'POST',
+                                data: { taskId: taskId },
+                                success: function(statusData) {
+                                    if (statusData.status === 'completed') {
+                                        clearInterval(checkStatus);
+                                        $('#exportModal #loadingAnimation').hide();
+                                        $('#exportModal #modalMessage').text('Ваш файл готов к скачиванию!');
+                                        $('#exportModal #downloadButton').show().click(function() {
+                                            window.location.href = statusData.download_url;
+                                        });
+                                    } else if (statusData.status === 'failed') {
+                                        clearInterval(checkStatus);
+                                        $('#exportModal #loadingAnimation').hide();
+                                        $('#exportModal #modalMessage').text('Ошибка при экспорте.');
+                                    }
+                                }
+                            });
+                        }, 5000);
+                    }
+                }
+            });
         }
     },
 // Показать строк
