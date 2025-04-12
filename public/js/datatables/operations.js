@@ -960,7 +960,6 @@ buttons_excel.push({
 if (is_acquiring == 1) {
     buttons_report.push({
         text: 'для сайта',
-        // className: 'btn-fa-file-excel',
         action: function (e, dt, node, config) {
             console.log('для сайта');
             var type = "site";
@@ -969,7 +968,6 @@ if (is_acquiring == 1) {
     });
     buttons_excel.push({
         text: 'для сайта',
-        // className: 'btn-fa-file-excel',
         action: function (e, dt, node, config) {
             console.log('для сайта');
             var type = "site";
@@ -981,7 +979,6 @@ if (is_acquiring == 1) {
 if (is_airline == 1) {
     buttons_report.push({
         text: 'для авиакомпании',
-        // className: 'btn-fa-file-excel',
         action: function (e, dt, node, config) {
             console.log('для авиакомпании');
             var type = "airline";
@@ -990,7 +987,6 @@ if (is_airline == 1) {
     });
     buttons_excel.push({
         text: 'для авиакомпании',
-        // className: 'btn-fa-file-excel',
         action: function (e, dt, node, config) {
             console.log('для авиакомпании');
             var type = "airline";
@@ -1297,7 +1293,7 @@ var buttons = [
     // Экспорт в Excel
     {
         text: 'Экспорт в Excel',
-        className: 'btn-fa-file-excel-all',
+        className: 'all-file-excel',
         action: function(e, dt, node, config) {
             var type = "default";
             var url = '/allexport';
@@ -1309,7 +1305,7 @@ var buttons = [
     // Формировать отчет
     {
         extend: 'collection',
-        className: 'btn-fa-file-export',
+        className: 'report-excel',
         autoClose: true, 
         text: 'Сформировать отчёт',
         buttons: buttons_report
@@ -1318,7 +1314,7 @@ var buttons = [
     // Экспорт в Excel
     {
         extend: 'collection',
-        className: 'btn-fa-file-excel',
+        className: 'file-excel',
         autoClose: true, 
         text: 'Сформировать отчёт в Excel',
         buttons: buttons_excel
