@@ -463,7 +463,7 @@ class BigExportController extends Controller
 
     public function exportData()
     {
-
+        
         // Получение параметров запроса
         $params = $this->request->getPost();
         $getData = $this->getData($params);
@@ -1265,9 +1265,9 @@ class BigExportController extends Controller
 
 
         // Log
-        $action = 'Cформировать отчет в Excel';
-        $logger = new LogsController(); 
-        $logger->logAction($action);
+        // $action = 'Cформировать отчет в Excel';
+        // $logger = new LogsController(); 
+        // $logger->logAction($action);
     
         
         return $this->response->setJSON([
@@ -2530,6 +2530,12 @@ class BigExportController extends Controller
         $filteredHeaders = $getData['filteredHeaders'];
 
 
+        // добавляем новые поля
+        // фильтр по 4 параметрам конструктор
+        $table_name = $this->is_table_name($params);
+        $data = $this->addNewColums($table_name, $data, $filteredHeaders);
+
+
         // создать spreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -2540,6 +2546,9 @@ class BigExportController extends Controller
 
         // добавить данных
         $sheet->fromArray($data, null, 'A2');
+
+        // настройка Excelfile
+        $sheet = $this->settingsExcel($sheet);        
 
         // генерация file
         $writer = new Xlsx($spreadsheet);
@@ -2554,7 +2563,102 @@ class BigExportController extends Controller
             'data' => $data,
         ]);
     }
+
+    public function addNewColums($table_name, $data, $filteredHeaders)
+    {
+        // Добавить новые элементы в массив
+        $db = \Config\Database::connect();
+        $builder = $db->table($table_name);
+        $results_table = $builder->get()->getResult();
+        $builder = $db->table('rewards');
+        $results_rewards = $builder->get()->getResult();
+        $builder = $db->table('currencies');
+        $results_currencies = $builder->get()->getResult();
+        $c_name = $table_name.'_code';
+
+
+
+        foreach ($data as $k => $t) {
+
+            $rewardValue = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
+            $penaltyValue = $this->exception($t, $table_name, $results_table, $results_rewards, "penalty");
+
+            $penaltyV = null;
+            $rewardV = null;
+            $tickets_trans_type = $t['tickets_TRANS_TYPE'];
+
+
+            // изменить значения для полей 'Курс валюты', 'Сумма штрафа', 'Штраф'
+            if ($tickets_trans_type == "CANCEL") {
+                $currencyValue = 0;
+                foreach ($results_currencies as $row) {
+                    if ($row->date == $t['tickets_dealdate'] && $row->name == $t['tickets_currency']) {
+                        $currencyValue = $row->value;
+                        break; 
+                    }
+                }
+
+                $penaltyV = $currencyValue * $penaltyValue;
+                
+
+                // изменить значения
+                $data[$k]['penalty_currency'] = round($currencyValue, 2); // $currencyValue;
+                $data[$k]['penalty_summa'] = round($penaltyValue, 2); // $penaltyValue;
+                $data[$k]['penalty'] = $penaltyV;
+                
+            }
+
+
+
+            // изменить значения для полей 'Вознаграждение', 'Процент вознаграждение'
+            if ($tickets_trans_type == "SALE" || $tickets_trans_type == "REFUND" || $tickets_trans_type == "EXCHANGE") {
+
+                $rewardV = $t['tickets_FARE'] * $rewardValue / 100;
+
+                // изменить значения
+                $data[$k]['reward'] = $rewardV;
+                $data[$k]['reward_procent'] = round($rewardValue, 2); // $rewardValue
+
+            }
+            
+            
+            // изменить значения taxCodes
+            $taxCodes = explode(',', $t['tax_code']);
+            $taxAmounts = explode(',', $t['tax_amount_main']);
+            
+            foreach ($taxCodes as $index => $code) {
+                if (in_array($code, $filteredHeaders)) {
+                    $data[$k][$code] = $taxAmounts[$index];
+                }
+            }
+
+
+
+            
+        }
+
+        return $data;
+
+
+    }
     
+    public function settingsExcel($sheet){
+
+        // Установка автофильтра для всех столбцов с данными
+        $sheet->setAutoFilter($sheet->calculateWorksheetDimension());
+
+        // Автоширина
+        $highestColumn = $sheet->getHighestColumn();
+        $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+        
+        // Настройка автоматической ширины для всех столбцов в листе
+        for ($col = 1; $col <= $highestColumnIndex; ++$col) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setAutoSize(true);
+        }
+
+        return $sheet;
+
+    }
     
 }
 
