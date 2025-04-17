@@ -3,7 +3,7 @@ name: Test deploy
 on:
   push:
     branches:
-      - leondesert
+      - bakhodir
 
 jobs:
   deploy:
