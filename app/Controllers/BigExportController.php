@@ -13,6 +13,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoSizeMode;
 
 
 
@@ -2540,6 +2542,26 @@ class BigExportController extends Controller
 
         // добавить данных
         $sheet->fromArray($data, null, 'A2');
+
+        // получаем номер последней строки с данными
+        $lastRow = $sheet->getHighestRow();
+
+        if ($lastRow >= 2) {
+            // Устанавливаем формат целого числа для столбца G (7-й столбец)
+            $sheet->getStyle('G2:G'.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
+            // Устанавливаем формат целого числа для столбца H (8-й столбец)
+            $sheet->getStyle('H2:H'.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
+            // Устанавливаем формат целого числа для столбца I (9-й столбец)
+            $sheet->getStyle('I2:I'.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
+        }
+
+        $highestColumn = $sheet->getHighestDataColumn(); // Получаем последнюю колонку (например, 'R')
+        $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+
+        for ($colIndex = 1; $colIndex <= $highestColumnIndex; ++$colIndex) {
+            $colString = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getColumnDimension($colString)->setAutoSize(true);
+        }
 
         // генерация file
         $writer = new Xlsx($spreadsheet);
