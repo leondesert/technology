@@ -62,6 +62,7 @@ var table = $('#reports').DataTable({
         dom: 'Bfrtip',
         processing: true,
         columns: [
+            { data: 'id' },
             { data: 'user_id' },
             // { data: 'name_table' },
             // { data: 'value_table' },
@@ -89,7 +90,7 @@ var table = $('#reports').DataTable({
             // <button class="btn btn-secondary delete-btn" data-id="${row.id}">Удалить</button>
         
         ],
-        order: [[4, 'desc']],
+        order: [[5, 'desc']],
         stateSave: false,
         select: false,
         serverSide: true,
