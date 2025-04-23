@@ -43,11 +43,11 @@
         <?php if ($role === 'superadmin') : ?>
         <div class="form-group">
             <label for="balance_tjs">Баланс TJS</label>
-            <input type="number" class="form-control" id="balance_tjs" name="balance_tjs" placeholder="Введите баланс" value="<?= $data['balance_tjs'] ?>">
+            <input type="number" class="form-control" id="balance_tjs" name="balance_tjs" placeholder="Введите баланс" step="any" value="<?= $data['balance_tjs'] ?>">
         </div>
         <div class="form-group">
             <label for="balance_rub">Баланс RUB</label>
-            <input type="number" class="form-control" id="balance_rub" name="balance_rub" placeholder="Введите баланс" value="<?= $data['balance_rub'] ?>">
+            <input type="number" class="form-control" id="balance_rub" name="balance_rub" placeholder="Введите баланс" step="any" value="<?= $data['balance_rub'] ?>">
         </div>
         <?php endif; ?>
 

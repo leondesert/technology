@@ -185,8 +185,20 @@ class TapController extends BaseController
 
     public function update($id)
     {   
+        helper(['form']);
+
         $role = session()->get('role');
         $model = new TapModel();
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'balance_tjs' => 'permit_empty|decimal',
+            'balance_rub' => 'permit_empty|decimal',
+        ]);
+
+        if (!$validation->withRequest($this->request)->run()) {
+            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
+        }
 
         $data = [
             'tap_name' => $this->request->getPost('name'),
@@ -194,8 +206,8 @@ class TapController extends BaseController
             'tap_phone' => $this->request->getPost('phone'),
             'tap_mail' => $this->request->getPost('mail'),
             'reward' => $this->request->getPost('reward'),
-            'balance_tjs' => $this->request->getPost('balance_tjs'),
-            'balance_rub' => $this->request->getPost('balance_rub'),
+            'balance_tjs'  => str_replace(',', '.', $this->request->getPost('balance_tjs')),
+            'balance_rub'  => str_replace(',', '.', $this->request->getPost('balance_rub')),
             'penalty' => $this->request->getPost('penalty'),
         ];
 
