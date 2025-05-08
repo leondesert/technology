@@ -45,58 +45,63 @@ $role = $session->get('role');
               <div class="col-md-6">
                 <div class="form-group">
                   <label for="fio">ФИО</label>
-                  <input type="text" class="form-control" id="fio" name="fio" value="<?= $user['fio'] ?>" autocomplete="off" placeholder="Введите ФИО">
+                  <input type="text" class="form-control" id="fio" name="fio" value="<?= esc($user['fio'], 'attr') ?>" autocomplete="off" placeholder="Введите ФИО">
                 </div>
                 <div class="form-group">
                   <label for="exampleInputEmail1">Логин</label>
-                  <input type="text" class="form-control" id="login" name="login" value="<?= $user['user_login'] ?>" autocomplete="off" placeholder="Введите логин">
+                  <input type="text" class="form-control" id="login" name="login" value="<?= esc($user['user_login'], 'attr') ?>" autocomplete="off" placeholder="Введите логин">
                 </div>
                 <div class="form-group">
                   <label for="exampleInputPassword1">Новый пароль</label>
                   <input type="password" class="form-control" id="password" name="password" autocomplete="off" placeholder="Введите пароль">
                 </div>
-                <!-- <php if ($role === 'superadmin') : ?> -->
+                <?php if ($role === 'superadmin') : ?>
                   <div class="form-group">
                     <label>Роль</label>
                     <select class="form-control" id="role" name="role">
                       <?php foreach ($roles as $item): ?>
                           <?php
-
-                              if ($item == $user['role']) {
-                                $isSelected = 'selected';
-                              }else{
-                                $isSelected = '';
-                              }
+                            $isSelected = ($item == $user['role']) ? 'selected' : '';
                           ?>
-                          <option value="<?=$item;?>" <?=$isSelected;?>><?=$item;?></option>
+                          <option value="<?= esc($item, 'attr');?>" <?=$isSelected;?>><?= esc($item);?></option>
                       <?php endforeach; ?> 
                     </select>
                   </div>
-                <!-- <php endif; ?> -->
+                <?php else: ?>
+                  <!-- Если не superadmin, можно просто отобразить текущую роль без возможности изменения, если это требуется -->
+                  <!-- или скрыть поле, если роль не должна меняться другими -->
+                  <input type="hidden" name="role" value="<?= esc($user['role'], 'attr') ?>">
+                <?php endif; ?>
+
                 
                 <div class="form-group">
                     <label>Активный фильтр</label>
                     <select class="form-control" id="filter" name="filter">
-                      <?php foreach ($filters as $filter): ?>
+                      <?php foreach ($filters as $filter_item): ?>
                           <?php
-
-                              if ($filter['value'] == $user['filter']) {
-                                $isSelected = 'selected';
-                              }else{
-                                $isSelected = '';
-                              }
+                              $isSelected = ($filter_item['value'] == $user['filter']) ? 'selected' : '';
                           ?>
-                          <option value="<?=$filter['value'];?>" <?=$isSelected;?>><?=$filter['name'];?></option>
-                      <?php endforeach; ?> 
+                          <option value="<?= esc($filter_item['value'], 'attr');?>" <?=$isSelected;?>><?= esc($filter_item['name']);?></option>
+                      <?php endforeach; ?>
                     </select>
                 </div>
 
-                
-
-                  
-
-
-                
+              <?php if ($role === 'superadmin'): ?>
+                  <?php if (isset($potential_parents) && is_array($potential_parents)): ?>
+                  <div class="form-group">
+                      <label for="parent_id">Родительский пользователь</label>
+                      <select name="parent_id" id="parent_id" class="form-control">
+                          <option value="" <?= (empty($user['parent'])) ? 'selected' : '' ?>>-- Не выбран --</option>
+                          <?php foreach ($potential_parents as $parent_option): ?>
+                              <option value="<?= esc($parent_option['user_id'], 'attr') ?>"
+                                  <?= (!empty($user['parent']) && $user['parent'] == $parent_option['user_id']) ? 'selected' : '' ?>>
+                                  <?= esc($parent_option['user_login']) ?> (<?= esc($parent_option['fio']) ?>)
+                              </option>
+                          <?php endforeach; ?>
+                      </select>
+                  </div>
+                  <?php endif; ?>
+              <?php endif; ?>
 
               </div>
               <!-- Правая колонка -->
@@ -113,7 +118,7 @@ $role = $session->get('role');
                                     $isSelected = in_array($agency['agency_id'], $agencyIdsArray);
                                     $selectedAttribute = $isSelected ? 'selected' : '';
                                 ?>
-                                <option value="<?=$agency['agency_id'];?>" <?=$selectedAttribute;?>><?=$agency['agency_code'];?></option>
+                                <option value="<?= esc($agency['agency_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($agency['agency_code']);?></option>
                             <?php endforeach; ?>  
                         </select>
                   </div>
@@ -130,7 +135,7 @@ $role = $session->get('role');
                                   $isSelected = in_array($stamp['stamp_id'], $stampIdsArray);
                                   $selectedAttribute = $isSelected ? 'selected' : '';
                               ?>
-                              <option value="<?=$stamp['stamp_id'];?>" <?=$selectedAttribute;?>><?=$stamp['stamp_code'];?></option>
+                              <option value="<?= esc($stamp['stamp_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($stamp['stamp_code']);?></option>
                           <?php endforeach; ?>  
                       </select>
                   </div>
@@ -147,8 +152,8 @@ $role = $session->get('role');
                                   $isSelected = in_array($tap['tap_id'], $tapIdsArray);
                                   $selectedAttribute = $isSelected ? 'selected' : '';
                               ?>
-                              <option value="<?=$tap['tap_id'];?>" <?=$selectedAttribute;?>><?=$tap['tap_code'];?></option>
-                          <?php endforeach; ?>  
+                              <option value="<?= esc($tap['tap_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($tap['tap_code']);?></option>
+                            <?php endforeach; ?>  
                       </select>
                   </div>
                   <?php endif; ?>
@@ -164,7 +169,7 @@ $role = $session->get('role');
                                   $isSelected = in_array($opr['opr_id'], $oprIdsArray);
                                   $selectedAttribute = $isSelected ? 'selected' : '';
                               ?>
-                              <option value="<?=$opr['opr_id'];?>" <?=$selectedAttribute;?>><?=$opr['opr_code'];?></option>
+                              <option value="<?= esc($opr['opr_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($opr['opr_code']);?></option>
                           <?php endforeach; ?>  
                       </select>
                   </div>

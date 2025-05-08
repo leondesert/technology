@@ -19,6 +19,17 @@ class CurrenciesController extends BaseController
         $model = new CurrenciesModel();
         $currencies = $model->findAll();
 
+        // Заменяем null значения курса валюты на пустую строку
+        if (!empty($currencies)) {
+            foreach ($currencies as &$currency_item) {
+                if (isset($currency_item['value']) && $currency_item['value'] === null) {
+                    $currency_item['value'] = "";
+                }
+            }
+            unset($currency_item); // Разрываем ссылку на последний элемент
+        }
+            
+
             
         $data = [
             'currencies' => $currencies,

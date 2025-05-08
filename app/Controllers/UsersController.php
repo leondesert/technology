@@ -111,6 +111,13 @@ class UsersController extends BaseController
             
             
         ];
+
+        if ($role === 'superadmin') { 
+            $data['potential_parents'] = $userModel->select('user_id, user_login, fio')
+                                                   ->orderBy('user_login', 'ASC')
+                                                   ->findAll();
+        }
+
         
         return view('users/create_user', $data);
     }
@@ -118,10 +125,11 @@ class UsersController extends BaseController
     public function edit($id)
     {
         // Fetch the agency data based on the ID from the database
+        if (!session()->get('is_logged_in')) {
+            return redirect()->to('/login'); 
+        }
+
         $role = session()->get('role');
-
-        
-
 
         if($role === "superadmin"){
             $model = new AgencyModel();
@@ -159,6 +167,13 @@ class UsersController extends BaseController
         $model = new UserModel();
         $user = $model->find($id);
 
+        $model = new UserModel(); 
+        $user = $model->find($id); 
+
+        if (!$user) { 
+            return redirect()->to('/users')->with('error', 'Пользователь не найден.');
+        }
+
         // Log
         $action = 'Попытка изменить пользователя '.$user['user_login'];
         $logger = new LogsController(); 
@@ -185,8 +200,12 @@ class UsersController extends BaseController
             
         ];
 
-
-
+        if ($role === 'superadmin') { 
+            $data['potential_parents'] = $model->select('user_id, user_login, fio')
+                                               ->where('user_id !=', $id) 
+                                               ->orderBy('user_login', 'ASC')
+                                               ->findAll();
+        }
         
         return view('users/edit_user', $data);
     }
@@ -223,11 +242,9 @@ class UsersController extends BaseController
         $stamps = $this->request->getPost('stamps');
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
         
-
+        $role = "user"; 
         if($this->request->getPost('role')){
-            $role = $this->request->getPost('role');
-        }else{
-            $role = "user";
+            $role = $this->request->getPost('role'); 
         }
         $filter = $this->request->getPost('filter');
         $userId = session()->get('user_id');
@@ -240,10 +257,19 @@ class UsersController extends BaseController
         // Ключ
         $secret_key = bin2hex(random_bytes(32 / 2));
 
+        // Определение родителя
+        $parent_value_for_db = null;
+        if (session()->get('role') === 'superadmin') { 
+            $posted_parent_id = $this->request->getPost('parent_id');
+            if (!empty($posted_parent_id)) {
+                $parent_value_for_db = $posted_parent_id;
+            } 
+        } else {
+            $parent_value_for_db = $userId; 
+        }
 
         // Создание нового пользователя
-        $userModel = new UserModel();
-        $userModel->insert([
+        $data_to_insert = [
             'user_login' => $username,
             'user_pass' => password_hash($password, PASSWORD_DEFAULT), // Хеширование пароля
             'filter' => $filter,
@@ -252,12 +278,13 @@ class UsersController extends BaseController
             'opr_id' => $oprs,
             'tap_id' => $taps,
             'stamp_id' => $stamps,
-            'parent' => $userId,
+            'parent' => $parent_value_for_db, 
             'start_date' => $start_date,
             'end_date' => $end_date,
             'secret_key' => $secret_key,
             'fio' => $fio
-        ]);
+        ];
+        $userModel->insert($data_to_insert);
 
         // Log
         $action = 'Пользователь логином '.$username.' успешно создан!';
@@ -288,11 +315,9 @@ class UsersController extends BaseController
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
 
 
-
+        $role = "user"; 
         if($this->request->getPost('role')){
-            $role = $this->request->getPost('role');
-        }else{
-            $role = "user";
+            $role = $this->request->getPost('role'); 
         }
         $filter = $this->request->getPost('filter');
 
@@ -310,11 +335,25 @@ class UsersController extends BaseController
         ];
 
         if (!empty($password)) {
-            $data['user_pass'] = password_hash($password, PASSWORD_DEFAULT);
+            $data['user_pass'] = password_hash($password, PASSWORD_DEFAULT); 
         }
 
-        $model->update($id, $data);
+        // Parent update logic
+        if (session()->get('role') === 'superadmin') { 
+            $parent_id_from_post = $this->request->getPost('parent_id');
 
+            if ($parent_id_from_post !== '' && (int)$parent_id_from_post === (int)$id) {
+                 return redirect()->back()->withInput()->with('error', 'Пользователь не может быть назначен сам себе в качестве родителя.');
+            }
+
+            if (!empty($parent_id_from_post)) {
+                $data['parent'] = $parent_id_from_post;
+            } else {
+                $data['parent'] = null; 
+            }
+        }
+
+        $model->update($id, $data); 
 
         // Log
         $action = 'Изменен пользователь ID: '.$id;
