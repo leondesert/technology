@@ -324,14 +324,14 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
         if ($tickets_type === "ETICKET" && $tickets_trans_type === "SALE" || $tickets_type === "ETICKET" && $tickets_trans_type === "EXCHANGE") {
         	$reward = $tickets_FARE * $rewardValue / 100;
         	$reward = round($reward, 2);
-        	$reward = number_format($reward, 2);
+        	$reward = number_format($reward ?? 0, 2);
         }
 
         // Штраф
         if ($tickets_type === "ETICKET" && $tickets_trans_type === "CANCEL") {
         	$penalty = $currencyValue * $penaltyValue;
         	$penalty = round($penalty, 2);
-        	$penalty = number_format($penalty, 2);
+        	$penalty = number_format($penalty ?? 0, 2);
         }
 
 
@@ -339,10 +339,10 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 
         // Добавляем кастомные данные к каждой записи
         $record['custom'] = array(
-        	"penalty_summa" => number_format($penaltyValue, 2),
-        	"penalty_currency" => number_format($currencyValue, 2),
+        	"penalty_summa" => number_format($penaltyValue ?? 0, 2),
+        	"penalty_currency" => number_format($currencyValue ?? 0, 2),
         	"penalty" => $penalty,
-        	"reward_procent" => number_format($rewardValue, 2),
+        	"reward_procent" => number_format($rewardValue ?? 0, 2),
         	"reward" => $reward,
         	
 
