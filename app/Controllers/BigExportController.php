@@ -376,13 +376,13 @@ class BigExportController extends Controller
                             }
                         }
 
-                        $penaltyV = $currencyValue * $penaltyValue;
+                        $penaltyV = $this->roundCents($currencyValue * $penaltyValue);
                         
 
                         // значения для полей 'Курс валюты', 'Сумма штрафа', 'Штраф'
-                        $groupedData[$type][$k]['penalty_currency'] = round($currencyValue, 2); // $currencyValue;
-                        $groupedData[$type][$k]['penalty_summa'] = round($penaltyValue, 2); // $penaltyValue;
-                        $groupedData[$type][$k]['penalty'] = $penaltyV;
+                        $groupedData[$type][$k]['penalty_currency'] = $this->roundCents($currencyValue);
+                        $groupedData[$type][$k]['penalty_summa'] = $this->roundCents($penaltyValue);
+                        $groupedData[$type][$k]['penalty'] = $this->roundCents($penaltyV);
                         
                     }
 
@@ -390,9 +390,9 @@ class BigExportController extends Controller
 
                         $rewardV = $t['tickets_FARE'] * $rewardValue / 100;
 
-                        // значения для полей 'Вознаграждение', 'Процент вознаграждение' 
-                        $groupedData[$type][$k]['reward'] = $rewardV;
-                        $groupedData[$type][$k]['reward_procent'] = round($rewardValue, 2); // $rewardValue
+                        // значения для полей 'Вознаграждение', 'Процент вознаграждение'
+                        $groupedData[$type][$k]['reward'] = $this->roundCents($rewardV);
+                        $groupedData[$type][$k]['reward_procent'] = $this->roundCents($rewardValue);
 
                     }
                     
@@ -2527,10 +2527,52 @@ class BigExportController extends Controller
         // получить параметры из пост запроса
         $params = $this->request->getPost();
 
-        $getData = $this->getData($params);
-        $data = $getData['data'];
-        $filteredHeaders = $getData['filteredHeaders'];
+        $getDataResult = $this->getData($params);
+        $rawData = $getDataResult['data'];
+        $filteredHeaders = $getDataResult['filteredHeaders']; // Эти заголовки будут использоваться для записи в Excel
 
+        // Определяем имя таблицы для правил вознаграждений/штрафов
+        $table_name = $this->is_table_name($params);
+
+        // Группируем сырые данные так, как это ожидает addNewElements
+        $groupedRawData = $this->groupedData($rawData);
+
+        // Обогащаем данные вычисленными полями
+        $enrichedGroupedData = $this->addNewElements($table_name, $groupedRawData, $filteredHeaders);
+
+        // "Сплющиваем" сгруппированные и обогащенные данные обратно в один массив строк
+        $data = [];
+        if (!empty($enrichedGroupedData)) {
+            foreach ($enrichedGroupedData as $type => $rows) {
+                if (is_array($rows)) {
+                    foreach ($rows as $row) {
+                        $data[] = $row;
+                    }
+                }
+            }
+        } else {
+            $data = $rawData; // Если исходных данных не было или после обработки ничего не осталось
+        }
+
+        // Определяем ключи для номеров билетов и добавляем префикс-апостроф
+        $ticketNumberKeysMap = [
+            'Номер билета' => 'tickets.tickets_BSONUM',
+            'Номер старшего билета' => 'tickets.tickets_EX_BSONUM', // Уточни, если ключ другой
+            'Номер основного билета' => 'tickets.tickets_TO_BSONUM', // Уточни, если ключ другой
+        ];
+
+        if (!empty($data)) {
+            foreach ($ticketNumberKeysMap as $headerName => $dataKey) {
+                if (in_array($headerName, $filteredHeaders) && isset($data[0][$dataKey])) {
+                    foreach ($data as &$row) {
+                        if (isset($row[$dataKey]) && $row[$dataKey] !== null && $row[$dataKey] !== '') {
+                            $row[$dataKey] = "'" . strval($row[$dataKey]);
+                        }
+                    }
+                    unset($row); // Разрываем ссылку на последний элемент
+                }
+            }
+        }
 
         // создать spreadsheet
         $spreadsheet = new Spreadsheet();
@@ -2540,19 +2582,52 @@ class BigExportController extends Controller
         // добавить заголовки
         $sheet->fromArray($filteredHeaders, null, 'A1');
 
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ];
+        $sheet->getStyle('A1:' . $sheet->getHighestDataColumn() . '1')->applyFromArray($headerStyle);
+
         // добавить данных
         $sheet->fromArray($data, null, 'A2');
 
-        // получаем номер последней строки с данными
+        // получаем номер последней строки и колонки с данными
         $lastRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestDataColumn();
 
-        if ($lastRow >= 2) {
-            // Устанавливаем формат целого числа для столбца G (7-й столбец)
-            $sheet->getStyle('G2:G'.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
-            // Устанавливаем формат целого числа для столбца H (8-й столбец)
-            $sheet->getStyle('H2:H'.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
-            // Устанавливаем формат целого числа для столбца I (9-й столбец)
-            $sheet->getStyle('I2:I'.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
+        // Применяем форматирование к нужным колонкам
+        if ($lastRow >= 2 && !empty($filteredHeaders)) {
+            $columnsToFormat = [
+                'Штраф' => NumberFormat::FORMAT_NUMBER_00,
+                'Сумма штрафа' => NumberFormat::FORMAT_NUMBER_00,
+                'Курс валюты' => NumberFormat::FORMAT_NUMBER_00,
+                'Вознаграждение' => NumberFormat::FORMAT_NUMBER_00,
+                'Процент вознаграждение' => NumberFormat::FORMAT_NUMBER_00,
+                'Тариф цена' => NumberFormat::FORMAT_NUMBER_00,
+                'Сумма EMD' => NumberFormat::FORMAT_NUMBER_00,
+                'Сумма оплаты' => NumberFormat::FORMAT_NUMBER_00,
+            ];
+
+            $uniqueTaxCodesFromSession = session()->get('uniqueTaxCodes');
+            if (is_array($uniqueTaxCodesFromSession)) {
+                foreach ($uniqueTaxCodesFromSession as $taxCode) {
+                    $columnsToFormat[$taxCode] = NumberFormat::FORMAT_NUMBER_00;
+                }
+            }
+
+            foreach ($filteredHeaders as $colIndex => $headerName) {
+                if (isset($columnsToFormat[$headerName])) {
+                    $columnLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
+                    $sheet->getStyle($columnLetter . '2:' . $columnLetter . $lastRow)
+                          ->getNumberFormat()
+                          ->setFormatCode($columnsToFormat[$headerName]);
+                } elseif (in_array($headerName, ['Номер билета', 'Номер старшего билета', 'Номер основного билета'])) {
+                    $columnLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
+                    $sheet->getStyle($columnLetter . '1:' . $columnLetter . $lastRow) // Применяем формат ко всему столбцу, включая заголовок, если нужно, или с '2' для данных
+                          ->getNumberFormat()
+                          ->setFormatCode('0'); // Устанавливаем формат "целое число"
+                }
+            }
         }
 
         $highestColumn = $sheet->getHighestDataColumn(); // Получаем последнюю колонку (например, 'R')
@@ -2561,6 +2636,12 @@ class BigExportController extends Controller
         for ($colIndex = 1; $colIndex <= $highestColumnIndex; ++$colIndex) {
             $colString = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($colString)->setAutoSize(true);
+        }
+
+        // Установка автофильтра для всех столбцов с данными (от A1 до последней колонки и последней строки)
+        // Проверяем, есть ли данные для фильтрации (хотя бы заголовки)
+        if ($lastRow >= 1 && !empty($highestColumn)) {
+            $sheet->setAutoFilter('A1:' . $highestColumn . $lastRow);
         }
 
         // генерация file
@@ -2579,4 +2660,3 @@ class BigExportController extends Controller
     
     
 }
-
