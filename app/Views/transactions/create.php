@@ -79,13 +79,11 @@ $user_id = session()->get('user_id');
                               <label for="receipt_photo">Фото транзакции</label>
                               <div class="input-group">
                                 <div class="custom-file">
-                                  <input type="file" class="custom-file-input" id="receipt_photo" name="receipt_photo">
+                                  <input type="file" class="custom-file-input" id="receipt_photo" name="receipt_photo" accept=".jpg, .jpeg, .png">
                                   <label class="custom-file-label" for="receipt_photo">Выберите файл</label>
                                 </div>
-                                <!-- <div class="input-group-append">
-                                  <span class="input-group-text">Загрузить</span>
-                                </div> -->
                               </div>
+                              <small class="form-text text-muted">Допустимые форматы: JPG, JPEG, PNG.</small>
                             </div>
                           </div>
                           <!-- Правая колонка -->
@@ -195,6 +193,7 @@ $user_id = session()->get('user_id');
 
 <script type="text/javascript" language="javascript" src="<?= base_url(); ?><?= latest('js/custom/for_create_edit.js'); ?>"></script>
 
+<script type="text/javascript" language="javascript" src="<?= base_url(); ?><?= latest('js/custom/for_accept_image.js'); ?>"></script>
 
 
 <?= $this->endSection() ?>
