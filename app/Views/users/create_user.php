@@ -143,7 +143,25 @@ $role = $session->get('role');
                 </div>
                 <?php endif; ?>
 
-                
+                <?php if (session()->get('role') === 'superadmin'): ?>
+                  <div class="form-group">
+                      <div class="form-check">
+                          <input class="form-check-input" type="checkbox" name="acquiring" id="acquiring" value="1">
+                          <label class="form-check-label" for="acquiring">
+                              Доступ к эквайрингу
+                          </label>
+                      </div>
+                  </div>
+              
+                  <div class="form-group">
+                      <div class="form-check">
+                          <input class="form-check-input" type="checkbox" name="is_airline" id="is_airline" value="1">
+                          <label class="form-check-label" for="is_airline">
+                              Пользователь авиакомпании
+                          </label>
+                      </div>
+                  </div>
+                <?php endif; ?>
 
 
 

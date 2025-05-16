@@ -257,6 +257,9 @@ class UsersController extends BaseController
         // Ключ
         $secret_key = bin2hex(random_bytes(32 / 2));
 
+        $acquiring = $this->request->getPost('acquiring') ? '1' : '0';
+        $is_airline = $this->request->getPost('is_airline') ? '1' : '0';
+
         // Определение родителя
         $parent_value_for_db = null;
         if (session()->get('role') === 'superadmin') { 
@@ -282,7 +285,9 @@ class UsersController extends BaseController
             'start_date' => $start_date,
             'end_date' => $end_date,
             'secret_key' => $secret_key,
-            'fio' => $fio
+            'fio' => $fio,
+            'acquiring' => $acquiring,
+            'is_airline' => $is_airline,
         ];
         $userModel->insert($data_to_insert);
 
@@ -321,6 +326,9 @@ class UsersController extends BaseController
         }
         $filter = $this->request->getPost('filter');
 
+        $acquiring = $this->request->getPost('acquiring') ? '1' : '0';
+        $is_airline = $this->request->getPost('is_airline') ? '1' : '0';
+
         $model = new UserModel();
         $data = [
             'user_login' => $username,
@@ -330,8 +338,9 @@ class UsersController extends BaseController
             'opr_id' => $oprs,
             'tap_id' => $taps,
             'stamp_id' => $stamps,
-            'fio' => $fio
-            
+            'fio' => $fio,
+            'acquiring' => $acquiring,
+            'is_airline' => $is_airline,
         ];
 
         if (!empty($password)) {
