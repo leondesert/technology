@@ -1356,6 +1356,16 @@ var columns = [
         { data: 'passengers.pass', title: 'Паспорт'},
         { data: 'passengers.pas_type', title: 'Тип'},
         { data: 'passengers.citizenship', title: 'Гражданство'},
+        { 
+            data: 'passengers.contact', 
+            title: 'Контакты',
+            render: function (data, type, row) {
+                if (data && typeof data === 'string') {
+                    return data.split(':').join('<br>');
+                }
+                return data; // Возвращаем как есть, если не строка или пусто
+            }
+        },
         // Таблица "segments"
         { data: 'segments.citycodes', type: 'string', title: 'Маршрут'},
         { data: 'segments.carrier', title: 'Перевозчик'},
@@ -1896,6 +1906,3 @@ $('#submitReport').click(function(){
     
    
 });
-
-
-

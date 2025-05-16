@@ -89,7 +89,8 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 		Field::inst('passengers.fio'),
 		Field::inst('passengers.pass'),
 		Field::inst('passengers.pas_type'),
-		Field::inst('passengers.citizenship')
+		Field::inst('passengers.citizenship'),
+		Field::inst('passengers.contact')
 	)
 
 	// Присоединяем таблицу "segments"
