@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const fileName = file.name;
-                const validExtensions = ['jpg', 'jpeg', 'png'];
+                const validExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
                 const fileExtension = fileName.split('.').pop().toLowerCase();
 
                 if (!validExtensions.includes(fileExtension)) {
-                    alert('Неверное расширение файла! Допустимы только JPG, JPEG, PNG.');
+                    alert('Неверное расширение файла! Допустимы только JPG, JPEG, PNG, PDF.');
                     // Очищаем значение поля, чтобы предотвратить отправку неверного файла
                     fileInput.value = ''; 
                     // Для Bootstrap 4/5 custom-file-input, нужно также сбросить метку

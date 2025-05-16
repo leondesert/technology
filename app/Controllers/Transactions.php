@@ -910,7 +910,7 @@ class Transactions extends BaseController
         $file = $this->request->getFile('receipt_photo');
         if ($file->isValid() && !$file->hasMoved()) {
             // Check the file extension
-            $validExtensions = ['jpg', 'jpeg', 'png'];
+            $validExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
             $extension = $file->getExtension();
 
             if (in_array($extension, $validExtensions)) {
@@ -926,7 +926,7 @@ class Transactions extends BaseController
                 $data['receipt_photo'] = $newName;
             } else {
                 // Handle invalid file extension
-                return redirect()->back()->withInput()->with('error', 'Неверное расширение файла! Допустимы только jpg, jpeg, png.');
+                return redirect()->back()->withInput()->with('error', 'Неверное расширение файла! Допустимы только JPG, JPEG, PNG, PDF.');
             }
         }
 
@@ -1029,16 +1029,26 @@ class Transactions extends BaseController
 
         $file = $this->request->getFile('receipt_photo');
         if ($file->isValid() && !$file->hasMoved()) {
-            // Создайте путь сохранения, если он не существует
-            $path = WRITEPATH . 'uploads/checks';
-            if (!is_dir($path)) {
-                mkdir($path, 0777, true);
-            }
+            // Check the file extension
+            $validExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+            $extension = $file->getExtension();
 
-            $newName = $file->getRandomName();
-            $file->move($path, $newName);
-            
-            $data['receipt_photo'] = $newName;
+            if (in_array($extension, $validExtensions)) {
+                // Создайте путь сохранения, если он не существует
+                // Примечание: здесь используется WRITEPATH, в register() - FCPATH. Оставляем как есть.
+                $path = WRITEPATH . 'uploads/checks'; 
+                if (!is_dir($path)) {
+                    mkdir($path, 0777, true);
+                }
+
+                $newName = $file->getRandomName();
+                $file->move($path, $newName);
+                
+                $data['receipt_photo'] = $newName;
+            } else {
+                // Handle invalid file extension
+                return redirect()->back()->withInput()->with('error', 'Неверное расширение файла! Допустимы только JPG, JPEG, PNG, PDF.');
+            }
         }
 
         if ($model->update($id, $data)) {
