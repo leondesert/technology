@@ -2227,6 +2227,20 @@ class BigExportController extends Controller
         $builder->join('tap', 'tap.tap_id = tickets.tap_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
 
+        // Условное присоединение таблицы passengers, если фильтр идет по ее полям
+        $joinPassengers = false;
+        if (isset($params['searchBuilder']['criteria'])) {
+            foreach ($params['searchBuilder']['criteria'] as $criterion) {
+                if (isset($criterion['origData']) && strpos($criterion['origData'], 'passengers.') === 0) {
+                    $joinPassengers = true;
+                    break;
+                }
+            }
+        }
+        if ($joinPassengers) {
+            $builder->join('passengers', 'passengers.passengers_id = tickets.passengers_id', 'left');
+        }
+
         // Применяем фильтр
         $builder = $this->filter_tickets($params, $builder);
 
