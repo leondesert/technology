@@ -26,6 +26,7 @@ use App\Models\AgencyModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\OprModel;
+use App\Models\ShareModel;
 use App\Models\ReportsModel;
 use App\Models\PaysModel;
 
@@ -1913,6 +1914,11 @@ class BigExportController extends Controller
                 $model = new OprModel();
                 return $model;
                 break;
+            case 'share': 
+                $model = new ShareModel();
+                return $model;
+                break;
+
         }
     }
 
@@ -1930,6 +1936,9 @@ class BigExportController extends Controller
                 break;
             case 'opr':
                 return 'Код оператора';
+                break;
+            case 'share':
+                return 'Код раздачи';
                 break;
         }
     }
@@ -2174,6 +2183,9 @@ class BigExportController extends Controller
                 case 'Код оператора':
                     $table_name = "opr";
                     break;
+                case 'Код раздачи':
+                    $table_name = "share";
+                    break;
 
             }
 
@@ -2188,7 +2200,8 @@ class BigExportController extends Controller
         $hierarchy = [
             'stamp' => 'agency',
             'tap' => 'stamp',
-            'opr' => 'tap'
+            'opr' => 'tap',
+            'share' => 'opr'
         ];
 
         // Идем по цепочке родителей для var2, пока не достигнем корня иерархии

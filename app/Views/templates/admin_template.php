@@ -261,6 +261,15 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
                     </a>
                   </li>
                   <?php endif; ?>
+                  <?php if (!empty($user['share_id']) || $user['role'] === "superadmin"):?>
+                  <li class="nav-item">
+                    <a href="/share" class="nav-link">
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>Раздача</p>
+                    </a>
+                  </li>
+                  <?php endif; ?>
+
                 </ul>
               </li>
               

@@ -7,6 +7,7 @@ use App\Models\AgencyModel;
 use App\Models\OprModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
+use App\Models\ShareModel;
 use App\Controllers\LogsController;
 use App\Controllers\Profile;
 
@@ -67,6 +68,9 @@ class UsersController extends BaseController
             $stamps = $model->findAll();
             $model = new TapModel();
             $taps = $model->findAll();
+            $model = new ShareModel(); 
+            $shares = $model->findAll();
+
             
 
         }else{
@@ -77,6 +81,7 @@ class UsersController extends BaseController
             $oprs = explode(',', $user['opr_id']);
             $stamps = explode(',', $user['stamp_id']);
             $taps = explode(',', $user['tap_id']);
+            $shares_ids = explode(',', $user['share_id'] ?? '');
 
 
             $model = new AgencyModel();
@@ -87,7 +92,8 @@ class UsersController extends BaseController
             $stamps = $model->whereIn('stamp_id', $stamps)->findAll();
             $model = new TapModel();
             $taps = $model->whereIn('tap_id', $taps)->findAll();
-
+            $model = new ShareModel(); 
+            $shares = $model->whereIn('share_id', $shares_ids)->findAll();
 
             
         }
@@ -106,9 +112,9 @@ class UsersController extends BaseController
             'oprs' => $oprs, 
             'stamps' => $stamps, 
             'taps' => $taps,
+            'shares' => $shares, 
             'filters' => $table_names,
             'user' => $user,
-            
             
         ];
 
@@ -140,6 +146,8 @@ class UsersController extends BaseController
             $stamps = $model->findAll();
             $model = new TapModel();
             $taps = $model->findAll();
+            $model = new ShareModel();
+            $shares_all = $model->findAll(); 
             
 
         }else{
@@ -151,6 +159,8 @@ class UsersController extends BaseController
             $oprs = explode(',', $user['opr_id']);
             $stamps = explode(',', $user['stamp_id']);
             $taps = explode(',', $user['tap_id']);
+            $shares_ids = explode(',', $user['share_id'] ?? ''); 
+
 
             $model = new AgencyModel();
             $agencies = $model->whereIn('agency_id', $agencies)->findAll();
@@ -160,6 +170,8 @@ class UsersController extends BaseController
             $stamps = $model->whereIn('stamp_id', $stamps)->findAll();
             $model = new TapModel();
             $taps = $model->whereIn('tap_id', $taps)->findAll();
+            $model = new ShareModel(); 
+            $shares_all = $model->whereIn('share_id', $shares_ids)->findAll();
 
         }
 
@@ -195,6 +207,7 @@ class UsersController extends BaseController
             'oprs' => $oprs, 
             'stamps' => $stamps, 
             'taps' => $taps,
+            'shares' => $shares_all, 
             'filters' => $table_names,
             'roles' => $roles,
             
@@ -241,6 +254,10 @@ class UsersController extends BaseController
 
         $stamps = $this->request->getPost('stamps');
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
+
+        $shares_post = $this->request->getPost('shares');
+        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : '';
+
         
         $role = "user"; 
         if($this->request->getPost('role')){
@@ -281,6 +298,7 @@ class UsersController extends BaseController
             'opr_id' => $oprs,
             'tap_id' => $taps,
             'stamp_id' => $stamps,
+            'share_id' => $shares_post,
             'parent' => $parent_value_for_db, 
             'start_date' => $start_date,
             'end_date' => $end_date,
@@ -319,6 +337,10 @@ class UsersController extends BaseController
         $stamps = $this->request->getPost('stamps');
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
 
+        $shares_post = $this->request->getPost('shares');
+        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : '';
+
+
 
         $role = "user"; 
         if($this->request->getPost('role')){
@@ -338,6 +360,7 @@ class UsersController extends BaseController
             'opr_id' => $oprs,
             'tap_id' => $taps,
             'stamp_id' => $stamps,
+            'share_id' => $shares_post,
             'fio' => $fio,
             'acquiring' => $acquiring,
             'is_airline' => $is_airline,

@@ -175,6 +175,33 @@ $role = $session->get('role');
                   </div>
                   <?php endif; ?>
 
+                  <!-- Раздача -->
+                  <?php
+                    // Проверяем, есть ли у редактируемого пользователя назначенные 'share_id'
+                    // или если текущий сессионный пользователь - superadmin, чтобы показать поле
+                    $showSharesField = false;
+                    if (isset($user['share_id']) && !empty($user['share_id'])) { // Проверяем share_id редактируемого пользователя
+                        $showSharesField = true;
+                    } elseif (isset($role) && $role === "superadmin") { // Проверяем роль текущего пользователя (редактора)
+                        $showSharesField = true;
+                    }
+                  ?>
+                  <?php if ($showSharesField):?>
+                  <div class="form-group">
+                        <label>Раздача</label>
+                        <select name="shares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
+                            <?php
+                                $userShareIdsArray = isset($user['share_id']) ? explode(',', $user['share_id']) : [];
+                                foreach ($shares as $share_item):
+                                    $isSelected = in_array($share_item['share_id'], $userShareIdsArray);
+                                    $selectedAttribute = $isSelected ? 'selected' : '';
+                            ?>
+                                <option value="<?= esc($share_item['share_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($share_item['share_code']);?></option>
+                            <?php endforeach; ?>
+                        </select>
+                  </div>
+                  <?php endif; ?>
+
                   <?php if (session()->get('role') === 'superadmin'): ?>
                     <div class="form-group">
                         <div class="form-check">

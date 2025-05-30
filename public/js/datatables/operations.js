@@ -1598,7 +1598,7 @@ table.on('search.dt', function() {
         function getCriteriaNameTable(name_table, value_table){
 
             var criteria;
-            // console.log('value_table', value_table);
+            // console.log('getCriteriaNameTable - name_table:', name_table, 'value_table:', value_table);
 
             if (value_table !== 'all') {
                 if (name_table === "agency") {
@@ -1633,7 +1633,15 @@ table.on('search.dt', function() {
                                 "type": "num",
                                 "value": [value_table]
                             };
-                }
+                } else if (name_table === "share") { 
+                    criteria = {
+                                "condition": "=",
+                                "data": "Контакты",      
+                                "origData": "passengers.contact", 
+                                "type": "string",
+                                "value": [value_table]   
+                            };
+                        }
             }else{
                 criteria = false;
             }

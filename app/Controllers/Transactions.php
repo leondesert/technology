@@ -10,6 +10,7 @@ use App\Models\AgencyModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\OprModel;
+use App\Models\ShareModel;
 use App\Models\AcquiringModel;
 
 use App\Controllers\LogsController;
@@ -41,7 +42,7 @@ class Transactions extends BaseController
         $c_name2 = $name_table."_code";
 
         $BigExportController = new BigExportController();
-        $model = $BigExportController->getModal($name_table);
+        $model = $this->getModelByName($name_table);
         $result = $model->select($c_name1)->where($c_name2, $value_table)->asArray()->first();
 
 
@@ -60,7 +61,7 @@ class Transactions extends BaseController
         $c_name2 = $name_table."_code";
 
         $BigExportController = new BigExportController();
-        $model = $BigExportController->getModal($name_table);
+        $model = $this->getModelByName($name_table);
         $result = $model->select($c_name2)->where($c_name1, $value_table)->asArray()->first();
 
 
@@ -79,7 +80,7 @@ class Transactions extends BaseController
         $c_name2 = $name_table.$c_name2; // получить
 
         $BigExportController = new BigExportController();
-        $model = $BigExportController->getModal($name_table);
+        $model = $this->getModelByName($name_table);
         $result = $model->select($c_name2)->where($c_name1, $value_table)->asArray()->first();
 
 
@@ -99,8 +100,7 @@ class Transactions extends BaseController
         $stamp_ids = explode(',', $user['stamp_id']);
         $tap_ids = explode(',', $user['tap_id']);
         $opr_ids = explode(',', $user['opr_id']);
- 
-
+        $share_ids = explode(',', $user['share_id'] ?? '');
         $model = new TransactionsModel();
 
         // Фильтрация по полям name и value
@@ -120,6 +120,10 @@ class Transactions extends BaseController
                     ->orGroupStart()
                         ->where('name', 'opr')
                         ->whereIn('value', $opr_ids)
+                    ->groupEnd()
+                    ->orGroupStart() // Добавляем группу для share
+                        ->where('name', 'share')
+                        ->whereIn('value', $share_ids)
                     ->groupEnd()
                 ->groupEnd();
 
@@ -187,6 +191,9 @@ class Transactions extends BaseController
         $taps = $model->findAll();
         $model = new OprModel();
         $oprs = $model->findAll();
+        $model = new ShareModel();
+        $shares = $model->findAll(); 
+
 
 
         foreach ($transactions as $key => $transaction) {
@@ -211,6 +218,12 @@ class Transactions extends BaseController
                         $transactions[$key]['value'] = $oprs[$match]['opr_code'] ?? 'Unknown Opr';
                         $transactions[$key]['name'] = "Оператор";
                         break;
+                    case 'share': // Добавляем обработку для share
+                        $match = array_search($transaction['value'], array_column($shares, 'share_id'));
+                        $transactions[$key]['value'] = $shares[$match]['share_code'] ?? 'Unknown Share';
+                        $transactions[$key]['name'] = "Раздача";
+                        break;
+
                 }
             
         }
@@ -613,7 +626,9 @@ class Transactions extends BaseController
             case 'opr':
                 $model = new OprModel();
                 break;
-
+            case 'share': // Добавляем ShareModel
+                $model = new ShareModel();
+                break;
         }
         
         $tableData = $model->whereIn($table, $ids)->findAll();
@@ -669,6 +684,7 @@ class Transactions extends BaseController
         $stamp_amounts = [];
         $tap_amounts = [];
         $opr_amounts = [];
+        $share_amounts = [];
         $agency_labels = [];
         $stamp_labels = [];
         $tap_labels = [];
@@ -691,6 +707,9 @@ class Transactions extends BaseController
             }elseif ($transaction['name'] === 'Оператор') {
                 $opr_amounts[] = $transaction['amount'];
                 $opr_labels[] = $transaction['payment_date'];
+            }elseif ($transaction['name'] === 'Раздача') {
+                $share_amounts[] = $transaction['amount'];
+                $opr_labels[] = $transaction['payment_date'];
             }
 
         }
@@ -705,6 +724,8 @@ class Transactions extends BaseController
         $stamp_data = array_fill_keys($labels, 0);
         $tap_data = array_fill_keys($labels, 0);
         $opr_data = array_fill_keys($labels, 0);
+        $share_data = array_fill_keys($labels, 0); 
+
 
         // Заполняем массивы данными из исходных массивов
         foreach ($agency_labels as $index => $label) {
@@ -719,18 +740,25 @@ class Transactions extends BaseController
         foreach ($opr_labels as $index => $label) {
             $opr_data[$label] += $opr_amounts[$index];
         }
+        foreach ($opr_labels as $index => $label) { // Используем $opr_labels как пример, если метки одинаковы
+            if (isset($share_amounts[$index])) { // Проверка на существование элемента
+                $share_data[$label] += $share_amounts[$index];
+            }
+        }
 
         // Преобразуем массивы данных в индексированные массивы
         $agency_amounts = array_values($agency_data);
         $stamp_amounts = array_values($stamp_data);
         $tap_amounts = array_values($tap_data);
         $opr_amounts = array_values($opr_data);
+        $share_amounts = array_values($share_data);
 
         $amounts = [
             'agency' => $agency_amounts,
             'stamp' => $stamp_amounts,
             'tap' => $tap_amounts,
             'opr' => $opr_amounts,
+            'share' => $share_amounts, 
         ];
 
 
@@ -1084,6 +1112,25 @@ class Transactions extends BaseController
         return redirect()->back()->with('success', 'Успешно удален!');
     }
 
+    private function getModelByName($tableName)
+    {
+        switch ($tableName) {
+            case 'agency':
+                return new AgencyModel();
+            case 'stamp':
+                return new StampModel();
+            case 'tap':
+                return new TapModel();
+            case 'opr':
+                return new OprModel();
+            case 'share':
+                return new ShareModel();
+            default:
+                // Можно выбросить исключение или вернуть null, если имя таблицы неизвестно
+                // throw new \InvalidArgumentException("Unknown table name: $tableName");
+                return null; 
+        }
+    }
     
     
 }

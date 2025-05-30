@@ -143,6 +143,18 @@ $role = $session->get('role');
                 </div>
                 <?php endif; ?>
 
+                                <!-- Раздача -->
+                <?php if ((isset($user['share_id']) && !empty($user['share_id'])) || (isset($role) && $role === "superadmin")):?>
+                <div class="form-group">
+                      <label>Раздача</label>
+                      <select name="shares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
+                        <?php foreach ($shares as $share_item): ?>
+                          <option value="<?= esc($share_item['share_id'], 'attr');?>"><?= esc($share_item['share_code']);?></option>
+                        <?php endforeach; ?>
+                      </select>
+                </div>
+                <?php endif; ?>
+
                 <?php if (session()->get('role') === 'superadmin'): ?>
                   <div class="form-group">
                       <div class="form-check">

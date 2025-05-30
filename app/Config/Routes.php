@@ -209,6 +209,18 @@ $routes->get('/services/edit/(:num)', 'ServicesController::edit/$1');
 
 
 
+$routes->get('/share', 'ShareController::index');
+$routes->post('/share/getDataTable', 'ShareController::getDataTable'); // Для DataTables
+$routes->get('/share/create', 'ShareController::create');
+$routes->post('/share/register', 'ShareController::register');
+$routes->get('/share/edit/(:num)', 'ShareController::edit/$1');
+$routes->post('/share/update/(:num)', 'ShareController::update/$1');
+$routes->get('/share/delete/(:num)', 'ShareController::delete/$1'); // Или POST, если используете форму для удаления
+$routes->post('/share/reg_reward', 'ShareController::reg_reward');
+
+
+
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing
