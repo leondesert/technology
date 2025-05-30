@@ -264,6 +264,7 @@ class BigExportController extends Controller
         // Присоединение таблиц
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left');
         $builder->join('agency', 'agency.agency_id = tickets.agency_id', 'left');
+        $builder->join('share', 'share.share_id = tickets.share_id', 'left');
         $builder->join('passengers', 'passengers.passengers_id = tickets.passengers_id', 'left');
         $builder->join('stamp', 'stamp.stamp_id = tickets.stamp_id', 'left');
         $builder->join('tap', 'tap.tap_id = tickets.tap_id', 'left');
@@ -2007,7 +2008,8 @@ class BigExportController extends Controller
                        $criteria['data'] === "Код ППР" ||
                        $criteria['data'] === "Код пульта" ||
                        $criteria['data'] === "Код оператора" ||
-                       $criteria['data'] === "Валюта билета";
+                       $criteria['data'] === "Валюта билета" ||
+                       $criteria['data'] === "Код раздачи";
             });
 
             // Изменяем значения
@@ -2236,6 +2238,7 @@ class BigExportController extends Controller
         $builder->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left');
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left');
         $builder->join('agency', 'agency.agency_id = tickets.agency_id', 'left');
+        $builder->join('share', 'share.share_id = tickets.share_id', 'left');
         $builder->join('stamp', 'stamp.stamp_id = tickets.stamp_id', 'left');
         $builder->join('tap', 'tap.tap_id = tickets.tap_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
