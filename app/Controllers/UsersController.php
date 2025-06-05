@@ -256,7 +256,13 @@ class UsersController extends BaseController
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
 
         $shares_post = $this->request->getPost('shares');
-        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : '';
+        // ОТЛАДКА:
+        log_message('error', 'Raw POST shares data (register): ' . print_r($this->request->getPost('shares'), true));
+        
+        // Если это массив, объединяем в строку через запятую. 
+        // Если не массив (например, одиночное значение или null), используем его как есть или пустую строку.
+        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : ($shares_post ?: '');
+        log_message('error', 'Processed shares_post for DB (register): ' . $shares_post);
 
         
         $role = "user"; 
@@ -338,8 +344,13 @@ class UsersController extends BaseController
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
 
         $shares_post = $this->request->getPost('shares');
-        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : '';
+        // ОТЛАДКА:
+        log_message('error', 'Raw POST shares data (update): ' . print_r($this->request->getPost('shares'), true));
 
+        // Если это массив, объединяем в строку через запятую.
+        // Если не массив (например, одиночное значение или null), используем его как есть или пустую строку.
+        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : ($shares_post ?: '');
+        log_message('error', 'Processed shares_post for DB (update): ' . $shares_post);
 
 
         $role = "user"; 
