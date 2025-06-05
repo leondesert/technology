@@ -194,10 +194,10 @@ class BigExportController extends Controller
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'passengers.contact', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
+        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'share.share_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'passengers.contact', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
 
         // Заголовки
-        $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Контакты', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
+        $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код раздачи', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Контакты', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
 
         $uniqueTax = session()->get('uniqueTaxCodes');
     
@@ -218,9 +218,9 @@ class BigExportController extends Controller
 
 
         // Обязательные
-        $requireds = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Тип операции', 'Тип транзакции', 'Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Маршрут', 'Перевозчик', 'Тариф цена', 'Суммы сборов', 'Код сбора'];
+        $requireds = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Тип операции', 'Тип транзакции', 'Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи', 'Маршрут', 'Перевозчик', 'Тариф цена', 'Суммы сборов', 'Код сбора'];
 
-        $requireds_colums = ['tickets_type', 'tickets_currency', 'tickets_dealdate', 'tickets_OPTYPE', 'tickets_TRANS_TYPE', 'agency_code', 'stamp_code', 'tap_code', 'opr_code', 'citycodes', 'carrier', 'tickets_FARE', 'tax_amount_main', 'tax_code'];
+        $requireds_colums = ['tickets_type', 'tickets_currency', 'tickets_dealdate', 'tickets_OPTYPE', 'tickets_TRANS_TYPE', 'agency_code', 'stamp_code', 'tap_code', 'opr_code', 'share_code', 'citycodes', 'carrier', 'tickets_FARE', 'tax_amount_main', 'tax_code'];
 
 
         // Определить какое обязательное поле отсутсвует
@@ -2226,7 +2226,7 @@ class BigExportController extends Controller
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_TRANS_TYPE', 'tickets.tickets_type', 'fops.fops_amount', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'opr.opr_code', 'segments.flydate', 'segments.citycodes'];
+        $ticketsFields = ['tickets.tickets_TRANS_TYPE', 'tickets.tickets_type', 'fops.fops_amount', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'opr.opr_code', 'share.share_code', 'segments.flydate', 'segments.citycodes'];
 
         // $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount'];
 

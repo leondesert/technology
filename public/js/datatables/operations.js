@@ -1343,7 +1343,10 @@ var columns = [
         { data: 'tickets.tickets_DEAL_time', title: 'Время оформления'}, 
         { data: 'tickets.tickets_DEAL_utc', title: 'Время оформления UTC'}, 
         { data: 'tickets.summa_no_found', title: 'Сумма обмена без EMD'},
+        // Таблица "opr"
         { data: 'opr.opr_code', title: 'Код оператора'},
+        // Таблица "share" (Раздача)
+        { data: 'share.share_code', title: 'Код раздачи', name: 'share.share_code'},
         // Таблица "agency"
         { data: 'agency.agency_code', title: 'Код агентства'},
         // Таблица "emd"
@@ -1614,7 +1617,7 @@ table.on('search.dt', function() {
                                 "condition": "=",
                                 "data": "Код ППР",
                                 "origData": "stamp.stamp_code",
-                                "type": "num",
+                                "type": "string", // Коды обычно строки
                                 "value": [value_table]
                             };
                 }else if(name_table === "tap"){
@@ -1622,7 +1625,7 @@ table.on('search.dt', function() {
                                 "condition": "=",
                                 "data": "Код пульта",
                                 "origData": "tap.tap_code",
-                                "type": "string",
+                                "type": "string", 
                                 "value": [value_table]
                             };
                 }else if(name_table === "opr"){
@@ -1630,15 +1633,15 @@ table.on('search.dt', function() {
                                 "condition": "=",
                                 "data": "Код оператора",
                                 "origData": "opr.opr_code",
-                                "type": "num",
+                                "type": "string", // Коды обычно строки
                                 "value": [value_table]
                             };
                 } else if (name_table === "share") { 
                     criteria = {
                                 "condition": "=",
-                                "data": "Контакты",      
-                                "origData": "passengers.contact", 
-                                "type": "string",
+                                "data": "Код раздачи",      
+                                "origData": "share.share_code", 
+                                "type": "string", 
                                 "value": [value_table]   
                             };
                         }

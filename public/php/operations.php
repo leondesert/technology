@@ -66,6 +66,11 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 	->fields(
 		Field::inst('opr.opr_code')	
 	)
+	// Присоединяем таблицу "share"
+	->leftJoin( 'share', 'share.share_id', '=', 'tickets.share_id' )
+	->fields(
+		Field::inst('share.share_code')	
+	)
 	// Присоединяем таблицу "agency"
 	->leftJoin( 'agency', 'agency.agency_id', '=', 'tickets.agency_id' )
 	->fields(
@@ -144,6 +149,9 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 			                break;
 			            case 'Код оператора':
 			                $table_name = "opr";
+			                break;
+			            case 'Код раздачи':
+			                $table_name = "share";
 			                break;
 
 			        }

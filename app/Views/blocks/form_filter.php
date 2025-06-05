@@ -141,6 +141,3 @@
 
 
 <script type="text/javascript" language="javascript" src="<?= base_url(); ?><?= latest('js/custom/filter_form.js'); ?>"></script>
-
-
-

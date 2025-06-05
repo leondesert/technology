@@ -18,8 +18,9 @@ class ShareController extends BaseController
         $logger = new LogsController(); 
         $logger->logAction('Вход в страницу Раздачи');
 
+        $role = session()->get('role');
         $data = [
-            'role' => session()->get('role'),
+            'role' => $role,
         ];
         
         return view('organization/share/index', $data);
@@ -31,58 +32,110 @@ class ShareController extends BaseController
             return $this->response->setStatusCode(401)->setJSON(['error' => 'Unauthorized']);
         }
 
+        $BigExportController = new BigExportController(); // Для getModal, если понадобится, или используем new ShareModel() напрямую
         $request = service('request');
-        $model = new ShareModel();
+        $shareModel = new ShareModel(); // Используем ShareModel
 
         // Параметры DataTables
         $draw = $request->getPost('draw');
         $start = $request->getPost('start');
         $length = $request->getPost('length');
         $searchValue = $request->getPost('search')['value'] ?? '';
-        $order = $request->getPost('order');
-        $columns = $request->getPost('columns');
+        $order = $request->getPost('order') ?? [];
+        $columns = $request->getPost('columns') ?? [];
+
+        // Получение данных о пользователе для фильтрации
+        $user_id = session()->get('user_id');
+        $userModel = new UserModel();
+        $user = $userModel->find($user_id);
+        $role = session()->get('role');
 
         // Базовый запрос
-        $builder = $model;
+        $builder = $shareModel;
+
+        // Фильтрация по правам доступа
+        if ($role !== "superadmin") {
+            $share_ids_str = $user['share_id'] ?? '';
+            if (!empty($share_ids_str)) {
+                $share_ids = explode(',', $share_ids_str);
+                $share_ids = array_map('intval', $share_ids);
+                $builder->whereIn('share_id', $share_ids);
+            } else {
+                // Если у пользователя не назначены раздачи, он ничего не увидит (кроме superadmin)
+                $builder->whereIn('share_id', [0]); // effectively no results
+            }
+        }
 
         // Поиск
         if (!empty($searchValue)) {
             $builder->groupStart()
                 ->like('share_code', $searchValue)
                 ->orLike('share_name', $searchValue)
-                ->orLike('share_address', $searchValue)
-                ->orLike('share_phone', $searchValue)
-                ->orLike('share_mail', $searchValue)
+                // Добавьте другие поля для поиска, если необходимо
                 ->groupEnd();
         }
 
         // Общее количество записей (до фильтрации)
-        $totalRecords = $model->countAllResults(false); // false чтобы не сбрасывать предыдущие условия
+        $totalRecordsBuilder = clone $builder; // Клонируем для подсчета без учета limit/offset и order
+        $totalRecords = $totalRecordsBuilder->countAllResults(false);
 
         // Количество отфильтрованных записей
-        $recordsFiltered = $builder->countAllResults(false); // false чтобы не сбрасывать предыдущие условия
+        $recordsFilteredBuilder = clone $builder;
+        $recordsFiltered = $recordsFilteredBuilder->countAllResults(false);
 
         // Сортировка
         if (!empty($order)) {
-            $columnName = $columns[$order[0]['column']]['data'];
-            $dir = $order[0]['dir'];
-            $builder->orderBy($columnName, $dir);
+            $columnIndex = $order[0]['column'];
+            $columnName = $columns[$columnIndex]['data'] ?? 'share_id'; // Имя колонки из DataTables
+            $dir = $order[0]['dir'] ?? 'asc';
+            // Валидация имени колонки, чтобы избежать SQL-инъекций, если имя колонки приходит напрямую
+            $allowedSortColumns = ['share_id', 'share_code', 'share_name', 'share_address', 'share_phone', 'share_mail', 'reward', 'balance_tjs', 'balance_rub', 'penalty'];
+            if (in_array($columnName, $allowedSortColumns)) {
+                $builder->orderBy($columnName, $dir);
+            } else {
+                $builder->orderBy('share_id', 'DESC');
+            }
         } else {
             $builder->orderBy('share_id', 'DESC'); // Сортировка по умолчанию
         }
 
-        // Лимит и смещение
+        // Лимит и смещение для пагинации
         if ($length != -1) {
             $builder->limit($length, $start);
         }
 
         $data = $builder->findAll();
 
+        $output_data = [];
+        foreach ($data as &$item) { // Используем ссылку, чтобы изменять оригинальный массив $data
+            // Переименовываем поля для консистентности и добавляем новые
+            $item['code'] = $item['share_code'];
+            $item['name'] = $item['share_name'];
+            $item['address'] = $item['share_address'] ?? ''; // Используем null coalescing operator на случай отсутствия
+            $item['phone'] = $item['share_phone'];
+            $item['mail'] = $item['share_mail'];
+
+            // Формируем кнопки баланса и помещаем их в соответствующие поля
+            $item['balance_tjs'] = '<button type="button" class="btn btn-primary btn-sm showValue" value="'.$item['share_code'].'" currency="TJS"><i class="fas fa-eye"></i></button>';
+            $item['balance_rub'] = '<button type="button" class="btn btn-primary btn-sm showValue" value="'.$item['share_code'].'" currency="RUB"><i class="fas fa-eye"></i></button>';
+            
+            // Формируем кнопки действий
+            $edit_button = '<a href="' . base_url('share/edit/' . $item['share_id']) . '" class="btn btn-info btn-sm"><i class="fas fa-pencil-alt"></i></a>';
+            $delete_button = '';
+            if ($role == 'superadmin') {
+                $delete_button = ' <a href="' . base_url('share/delete/' . $item['share_id']) . '" class="btn btn-danger btn-sm" onclick="return confirmDelete()"><i class="fas fa-trash"></i></a>';
+            }
+            $item['action'] = $edit_button . $delete_button;
+        }
+        unset($item); // Разрываем ссылку на последний элемент
+
+        $output_data = $data; // Теперь $data содержит все необходимые преобразования
+
         $output = [
             'draw' => intval($draw),
             'recordsTotal' => intval($totalRecords),
             'recordsFiltered' => intval($recordsFiltered),
-            'data' => $data,
+            'data' => $output_data,
         ];
 
         return $this->response->setJSON($output);
@@ -96,8 +149,9 @@ class ShareController extends BaseController
             return redirect()->to('/login'); 
         }
 
+        $action = 'Вход в страницу Раздачи/Создать'; // Сообщение для лога в переменную, как в OprController
         $logger = new LogsController(); 
-        $logger->logAction('Вход в страницу Раздачи/Создать');
+        $logger->logAction($action);
         
         return view('organization/share/create');
     }
@@ -109,7 +163,7 @@ class ShareController extends BaseController
         $data = [
             'share_code' => $this->request->getPost('share_code'),
             'share_name' => $this->request->getPost('share_name'),
-            'share_address' => $this->request->getPost('share_address'), // Добавлено по аналогии
+            'share_address' => $this->request->getPost('share_address'),
             'share_phone' => $this->request->getPost('share_phone'),
             'share_mail' => $this->request->getPost('share_mail'),
             'reward' => $this->request->getPost('reward'),
@@ -118,11 +172,8 @@ class ShareController extends BaseController
             'penalty' => $this->request->getPost('penalty'),
         ];
 
-        if ($model->insert($data)) {
-            return redirect()->to('/share')->with('success', 'Раздача успешно создана!');
-        } else {
-            return redirect()->back()->withInput()->with('errors', $model->errors());
-        }
+        $model->insert($data);
+        return redirect()->to('/share')->with('success', 'Успешно создан!');
     }
 
     public function reg_reward()
@@ -176,14 +227,15 @@ class ShareController extends BaseController
         }
 
         $logger = new LogsController(); 
-        $logger->logAction('Попытка изменить Раздачу ID: ' . $id);
+        $logger->logAction('Попытка изменить Раздача'); // Сообщение в лог без ID, как в OprController
 
         $shareModel = new ShareModel(); // Используем ShareModel
         $share_entity = $shareModel->find($id); // Переменная названа share_entity во избежание конфликта
-
-        if (!$share_entity) {
-            return redirect()->to('/share')->with('error', 'Раздача не найдена.');
-        }
+        // Убрана проверка if (!$share_entity) для соответствия OprController,
+        // который не выполняет такую явную проверку в методе edit.
+        // if (!$share_entity) {
+        //     return redirect()->to('/share')->with('error', 'Раздача не найдена.');
+        // }
 
         $rewardsModel = new RewardsModel();
         $rewards = $rewardsModel->where('value', $id)->where('name', 'share')->findAll(); // Используем 'share'
@@ -238,9 +290,9 @@ class ShareController extends BaseController
         $role = session()->get('role');
         $model = new ShareModel();
 
-        $dataToUpdate = [
+        $data = [
             'share_name' => $this->request->getPost('name'),
-            'share_address' => $this->request->getPost('address'), 
+            // 'share_address' => $this->request->getPost('address'), // Адрес не обновляем для соответствия OprController
             'share_phone' => $this->request->getPost('phone'),
             'share_mail' => $this->request->getPost('mail'),
             'reward' => $this->request->getPost('reward'),
@@ -250,17 +302,14 @@ class ShareController extends BaseController
         ];
 
         if ($role === 'superadmin') {
-            $dataToUpdate['share_code'] = $this->request->getPost('code');
+            $data['share_code'] = $this->request->getPost('code');
         }
 
-        if ($model->update($id, $dataToUpdate)) {
-            $logger = new LogsController(); 
-            $logger->logAction('Изменена Раздача ID: ' . $id, json_encode($dataToUpdate));
-            return redirect()->to('/share')->with('success', 'Раздача успешно обновлена!');
+        $model->update($id, $data);
 
-        } else {
-            return redirect()->back()->withInput()->with('errors', $model->errors());
-        }
+        $logger = new LogsController(); 
+        $logger->logAction('Изменена Раздача ID: ' . $id); // Не передаем данные в лог для соответствия
+        return redirect()->to('/share')->with('success', 'Успешно обновлен!');
     }
 
     public function delete($id)
@@ -270,8 +319,8 @@ class ShareController extends BaseController
         }
 
         $model = new ShareModel();
-        $rewardsModel = new RewardsModel();
-        $rewardsModel->where('name', 'share')->where('value', $id)->delete();
+        // $rewardsModel = new RewardsModel(); // Удаление связанных вознаграждений убрано для соответствия OprController
+        // $rewardsModel->where('name', 'share')->where('value', $id)->delete();
 
         if ($model->delete($id)) {
             $logger = new LogsController(); 
