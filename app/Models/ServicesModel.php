@@ -104,22 +104,21 @@ class ServicesModel extends Model
     {
         // условие
         $builder->where('doc_date' . ' >=', $filters['startDate']);
-        $builder->where('doc_date' . ' <=', $filters['endDate']);
-        $builder->where('currency', $filters['currency']);
-        $builder->where('name', $filters['name_table']);
+        $builder->where('doc_date' . ' <=', ($filters['endDate'] ?? null));
+        $builder->where('currency', ($filters['currency'] ?? null));
+        $builder->where('name', ($filters['name_table'] ?? 'all'));
 
 
-        if ($filters['value_table'] !== "all") {
+        if (($filters['value_table'] ?? 'all') !== "all") {
 
             $builder->where('value', $filters['value_table']);
-
 
         } else {
 
 
             // если value_table = all
             $UserModel = new UserModel();
-            $user_id = $filters['user_login'];
+            $user_id = ($filters['user_login'] ?? session()->get('user_id'));
             $user = $UserModel->find($user_id);
             $colum_name = $user['filter'].'_id';
             $ids = $user[$colum_name];
@@ -156,12 +155,12 @@ class ServicesModel extends Model
 
         // Фильтровать
         $filters = [
-            'startDate' => $filters['start_date'],
-            'endDate' => $filters['end_date'],
-            'currency' => $filters['currency'],
-            'name_table' => $filters['name_table'],
-            'value_table' => $filters['value_table'],
-            'user_login' => $filters['user_login'],
+            'startDate' => ($filters['start_date'] ?? null),
+            'endDate' => ($filters['end_date'] ?? null),
+            'currency' => ($filters['currency'] ?? null),
+            'name_table' => ($filters['name_table'] ?? 'all'),
+            'value_table' => ($filters['value_table'] ?? 'all'),
+            'user_login' => ($filters['user_login'] ?? session()->get('user_id')),
 
         ];
 
@@ -181,11 +180,13 @@ class ServicesModel extends Model
     
     public function getDataForDowntable($params)
     {
-        $colum_name = $params['name_table'].'_id';
         $user_id = session()->get('user_id');
         $model = new UserModel();
         $user = $model->find($user_id);
-        $ids = explode(',', $user[$colum_name]);
+        // Используем фильтр пользователя по умолчанию, если name_table не указан или 'all'
+        $name_table_for_ids = ($params['name_table'] ?? 'all') === 'all' ? ($user['filter'] ?? null) : ($params['name_table'] ?? null);
+        $colum_name = $name_table_for_ids ? $name_table_for_ids.'_id' : null;
+        $ids = ($colum_name && isset($user[$colum_name])) ? explode(',', $user[$colum_name]) : [];
 
 
         $builder = $this->builder();
@@ -193,11 +194,11 @@ class ServicesModel extends Model
         // // Фильтровать 
         $builder->where('doc_date' . ' >=', $params['startDate']);
         $builder->where('doc_date' . ' <=', $params['endDate']);
-        $builder->where('currency', $params['currency']);
-        $builder->where('name', $params['name_table']);
-        $builder->whereIn('value', $ids);
+        $builder->where('currency', ($params['currency'] ?? null));
+        $builder->where('name', ($params['name_table'] ?? ($user['filter'] ?? 'all'))); // Фильтруем по name, если указано, или по user['filter']
+        if (!empty($ids)) { $builder->whereIn('value', $ids); } else if ($name_table_for_ids) { $builder->where('1=0'); /* Если есть тип, но нет ID, не показываем ничего для этого типа */ }
 
-        if ($params['value_table'] !== "all") {
+        if (($params['value_table'] ?? 'all') !== "all") {
             $builder->where('value', $params['value_table']);
         }
 
@@ -233,5 +234,3 @@ class ServicesModel extends Model
 
 
 }
-
-

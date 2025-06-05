@@ -103,7 +103,8 @@ class ServicesController extends BaseController
         $filters = $this->request->getPost();
 
 
-        if ($filters['value_table'] !== "all") {
+        // Проверяем, существует ли 'value_table' перед использованием
+        if (($filters['value_table'] ?? 'all') !== "all") {
             $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
         }
         
@@ -125,21 +126,33 @@ class ServicesController extends BaseController
 
         // изменить колонки
         foreach ($data as &$item) {
+            $original_item_name_key = $item['name'] ?? 'unknown'; // Тип организации (например, 'agency', 'share')
+            $original_item_value_id = $item['value'] ?? null;    // ID организации
 
             // ========= установить рядом (название)
             
-            $name = $TransactionsController->get_column($item['name'], $item['value'], '_id', '_name');
-            $code = $TransactionsController->get_column($item['name'], $item['value'], '_id', '_code');
+            // Получаем код организации (например, 'AG001')
+            $code = $TransactionsController->get_column($original_item_name_key, $original_item_value_id, '_id', '_code');
+            // Получаем описательное имя организации (например, 'Название Агентства Х')
+            $name_suffix = $TransactionsController->get_column($original_item_name_key, $original_item_value_id, '_id', '_name');
             
+            // Устанавливаем $item['name'] в человекочитаемый тип организации (например, 'Агенство', 'Раздача')
+            // Если getName вернет null, используем оригинальный ключ, сделав первую букву заглавной.
+            $item['name'] = (string) ($BigExportController->getName($original_item_name_key) ?? ucfirst($original_item_name_key));
 
-            $item['value'] = $code;
-            $item['name'] = $BigExportController->getName($item['name']);
-
-            if ($name) {
-                $item['value'] = $code . ' ('.$name.')';
+            // Формируем $item['value'] как строку: "код (описательное имя)"
+            // Гарантируем, что $item['value'] всегда будет строкой.
+            if ($code !== false && $code !== null) {
+                $item['value'] = (string)$code;
+                if ($name_suffix !== false && $name_suffix !== null && trim((string)$name_suffix) !== '') {
+                    $item['value'] .= ' (' . (string)$name_suffix . ')';
+                }
+            } else {
+                // Если код не найден, отображаем ID и сообщение
+                $item['value'] = 'ID: ' . (string)$original_item_value_id . ' (Код/Имя не найдены)';
             }
         }
-
+        unset($item); // Важно разорвать ссылку на последний элемент массива
 
 
         $response = [
@@ -408,7 +421,8 @@ class ServicesController extends BaseController
         $BigExportController = new BigExportController();
         
 
-        if ($filters['value_table'] !== "all") {
+        // Проверяем, существует ли 'value_table' перед использованием
+        if (($filters['value_table'] ?? 'all') !== "all") {
             $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
         }
 

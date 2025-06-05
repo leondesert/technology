@@ -689,10 +689,10 @@ class Transactions extends BaseController
         $stamp_labels = [];
         $tap_labels = [];
         $opr_labels = [];
+        $share_labels = []; // Инициализируем массив для меток Раздачи
 
 
         foreach($transactions as $transaction){
-
             $payment_dates[] = $transaction['payment_date'];
 
             if ($transaction['name'] === 'Агенство') {
@@ -708,8 +708,8 @@ class Transactions extends BaseController
                 $opr_amounts[] = $transaction['amount'];
                 $opr_labels[] = $transaction['payment_date'];
             }elseif ($transaction['name'] === 'Раздача') {
-                $share_amounts[] = $transaction['amount'];
-                $opr_labels[] = $transaction['payment_date'];
+                $share_amounts[] = $transaction['amount']; // Суммы для Раздачи
+                $share_labels[] = $transaction['payment_date']; // Метки дат для Раздачи
             }
 
         }
@@ -724,24 +724,25 @@ class Transactions extends BaseController
         $stamp_data = array_fill_keys($labels, 0);
         $tap_data = array_fill_keys($labels, 0);
         $opr_data = array_fill_keys($labels, 0);
-        $share_data = array_fill_keys($labels, 0); 
+        $share_data = array_fill_keys($labels, 0);
 
 
         // Заполняем массивы данными из исходных массивов
         foreach ($agency_labels as $index => $label) {
-            $agency_data[$label] += $agency_amounts[$index];
+            if(isset($agency_amounts[$index]) && isset($agency_data[$label])) $agency_data[$label] += $agency_amounts[$index];
         }
         foreach ($stamp_labels as $index => $label) {
-            $stamp_data[$label] += $stamp_amounts[$index];
+            if(isset($stamp_amounts[$index]) && isset($stamp_data[$label])) $stamp_data[$label] += $stamp_amounts[$index];
         }
         foreach ($tap_labels as $index => $label) {
-            $tap_data[$label] += $tap_amounts[$index];
+            if(isset($tap_amounts[$index]) && isset($tap_data[$label])) $tap_data[$label] += $tap_amounts[$index];
         }
         foreach ($opr_labels as $index => $label) {
-            $opr_data[$label] += $opr_amounts[$index];
+            if(isset($opr_amounts[$index]) && isset($opr_data[$label])) $opr_data[$label] += $opr_amounts[$index];
         }
-        foreach ($opr_labels as $index => $label) { // Используем $opr_labels как пример, если метки одинаковы
-            if (isset($share_amounts[$index])) { // Проверка на существование элемента
+        // Исправленный цикл для Раздачи
+        foreach ($share_labels as $index => $label) {
+            if (isset($share_amounts[$index]) && isset($share_data[$label])) {
                 $share_data[$label] += $share_amounts[$index];
             }
         }
@@ -751,7 +752,7 @@ class Transactions extends BaseController
         $stamp_amounts = array_values($stamp_data);
         $tap_amounts = array_values($tap_data);
         $opr_amounts = array_values($opr_data);
-        $share_amounts = array_values($share_data);
+        $share_amounts = array_values($share_data); // Данные для Раздачи
 
         $amounts = [
             'agency' => $agency_amounts,
