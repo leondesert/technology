@@ -436,28 +436,30 @@ class BigExportController extends Controller
     public function is_table_name($params)
     {
         // фильтр по 4 параметрам конструктор
-        $model = new UserModel();
-        $user = $model->where('user_id', $params['user_login'])->first();
-        $filter = $user['filter'];
+        $userModel = new UserModel();
+        $user = $userModel->where('user_id', $params['user_login'])->first();
+        $user_default_filter = $user['filter'];
 
-        $table_name = null;
+        $determined_table_name = $user_default_filter;
+
+        if (isset($params['name_table']) && $params['name_table'] !== 'all' && !empty($params['name_table'])) {
+            $determined_table_name = $params['name_table'];
+        }
+
+        $sb_table_name = null;
         if (isset($params['searchBuilder']['criteria'])) {
-            $table_name = $this->if_four_params($params['searchBuilder']['criteria']);
-
-            if ($table_name === null) {
-                $table_name = $filter;
-            }
+            $sb_table_name = $this->if_four_params($params['searchBuilder']['criteria']);
         }
 
-        $parent = $this->isParent($table_name, $filter);
-
-        if ($parent === true) {
-            $table_name = $filter;
+        if ($sb_table_name !== null) {
+            $determined_table_name = $sb_table_name;
         }
-
         
+        if ($this->isParent($determined_table_name, $user_default_filter)) {
+            $determined_table_name = $user_default_filter;
+        }
 
-        return $table_name;
+        return $determined_table_name;
     }
 
     public function getColumnOfIndex($index) 
