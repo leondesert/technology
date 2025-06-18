@@ -91,15 +91,15 @@ class ReportsModel extends Model
 
         // === 3. сравнить
 
-        $status = true;
+        // Сравнение сумм производим только если пытаемся одобрить отчет (статус '1')
+        if (isset($params['status']) && $params['status'] == "1") {
+            $balance_report_rounded = round(floatval($balance_report), 2);
+            $params_balance_rounded = round(floatval($params['balance']), 2);
 
-        if ($params['status'] !== "2") {
-
-            if($balance_report !== $params['balance']){
+            // Используем abs() для безопасного сравнения float чисел
+            if(abs($balance_report_rounded - $params_balance_rounded) > 0.001){ // Если расхождение больше чем 0.001 (0.1 копейки)
                 $params['status'] = "2";
-                $status = false;
             }
-
         }
         
         
@@ -108,18 +108,21 @@ class ReportsModel extends Model
 
 
         // === 4. обновить статус балансов и отчета
-        $result = $this->updateStatusBalances($params);
-        $res = $this->update($params['id'], ['balance' => $params['balance'], 'status' => $params['status']]); // для отчета
+        $details_update_success = $this->updateStatusBalances($params);
+        $main_report_update_success = $this->update($params['id'], ['balance' => $params['balance'], 'status' => $params['status']]); // Обновляем основной отчет
 
 
 
+        // Возвращаем данные (можно оставить как было или немного уточнить)
         $data = [
             'balance_report' => $balance_report,
             'params_balance' => $params['balance'],
-            'status' => $status,
-            'updateStatusBalances' => $result,
+            'operation_successful' => ($details_update_success && $main_report_update_success), // Флаг успеха операций в БД
+            'final_report_status' => $params['status'] // Финальный статус, установленный для отчета
         ];
 
+        // В ReportsController нужно будет проверить $data['status'] после вызова этого метода
+        // Теперь это будет $data['operation_successful'] и $data['final_report_status']
 
         return $data;
     }

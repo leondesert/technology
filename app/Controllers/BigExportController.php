@@ -1373,7 +1373,7 @@ class BigExportController extends Controller
         // 0. Сальдо взаиморасчетов на начало
 
         $OTCHET = [];
-        $OTCHET['0'] = $balance;
+        $OTCHET['0'] = floatval($balance);
 
         // 1. Выручка по реестрам продажи авиабилетов 
 
@@ -1400,11 +1400,11 @@ class BigExportController extends Controller
 
         if(isset($groupedData['SALE'])){
             foreach ($groupedData['SALE'] as $t) {
-                $summa_tariff += $t['tickets_FARE'];
-                $summa_sbora += $t['tax_amount'];
+                $summa_tariff += floatval($t['tickets_FARE']);
+                $summa_sbora += floatval($t['tax_amount']);
 
                 if ($is_airline) {
-                    $YR_SALE += $this->get_tax_value($t, 'YR');
+                    $YR_SALE += floatval($this->get_tax_value($t, 'YR'));
                 }
                 
             }
@@ -1424,24 +1424,24 @@ class BigExportController extends Controller
                     }
                 }
 
-                
+                // $summa_za_an += $currencyValue * $penaltyValue; // Старый вариант
 
-                $summa_za_an += $currencyValue * $penaltyValue;
+                $summa_za_an += ($currencyValue * $penaltyValue);
             }
         }
         
-        $virochka_po_reest_pro = round($summa_tariff, 2) + round($summa_sbora, 2) + round($summa_za_an, 2);
+        $virochka_po_reest_pro = $summa_tariff + $summa_sbora + $summa_za_an;
         // $virochka_po_reest_pro = $summa_tariff + $summa_sbora + $summa_za_an;
 
-        $OTCHET['1'] = round($virochka_po_reest_pro, 2);
-        $OTCHET['1.1'] = round($summa_tariff, 2);
-        $OTCHET['1.2'] = round($summa_sbora, 2);
-        $OTCHET['1.3'] = round($summa_za_an, 2);
+        $OTCHET['1'] = $virochka_po_reest_pro;
+        $OTCHET['1.1'] = $summa_tariff;
+        $OTCHET['1.2'] = $summa_sbora;
+        $OTCHET['1.3'] = $summa_za_an;
 
         if ($is_airline) {
-            $OTCHET['1.4'] = round($YR_SALE, 2);
-            $OTCHET['1.5'] = $OTCHET['1.2'] - $OTCHET['1.4']; // 1.2 - 1.4
-            $OTCHET['1.6'] = $OTCHET['1.4'] / 7*3; // 1.4 / 7*3
+            $OTCHET['1.4'] = floatval($YR_SALE);
+            $OTCHET['1.5'] = floatval($OTCHET['1.2']) - floatval($OTCHET['1.4']); 
+            $OTCHET['1.6'] = floatval($OTCHET['1.4']) / 7 * 3; 
         }
 
 
@@ -1456,11 +1456,11 @@ class BigExportController extends Controller
         if (isset($groupedData['EXCHANGE'])) {
 
             foreach ($groupedData['EXCHANGE'] as $t) {
-                $doplata_po_tarifu += $t['tickets_FARE'];
-                $tax_amount += $t['tax_amount'];
+                $doplata_po_tarifu += floatval($t['tickets_FARE']);
+                $tax_amount += floatval($t['tax_amount']);
 
                 if ($is_airline) {
-                    $YR_EXCHANGE += $this->get_tax_value($t, 'YR');
+                    $YR_EXCHANGE += floatval($this->get_tax_value($t, 'YR'));
                 }
 
             }
@@ -1471,24 +1471,24 @@ class BigExportController extends Controller
         if (isset($groupedData['EMD_EXCHANGE'])) {
 
             foreach ($groupedData['EMD_EXCHANGE'] as $t) {  
-                $penalty_v += $t['tickets_FARE'];
+                $penalty_v += floatval($t['tickets_FARE']);
             }
         }
 
 
         $penalty_v_v = $penalty_v + $tax_amount;
-        $virochka_po_reest_obm = $doplata_po_tarifu + $penalty_v_v; // Выручка по реестрам обмена 
+        // $virochka_po_reest_obm = $doplata_po_tarifu + $penalty_v_v; // Выручка по реестрам обмена (старый расчет)
 
-        $OTCHET['2'] = round($virochka_po_reest_obm, 2);
-        $OTCHET['2.1'] = round($doplata_po_tarifu, 2);
-        $OTCHET['2.2'] = round($penalty_v_v, 2);
-
+        $OTCHET['2.1'] = $doplata_po_tarifu;
+        $OTCHET['2.2'] = $penalty_v_v;
+        $OTCHET['2'] = floatval($OTCHET['2.1']) + floatval($OTCHET['2.2']); 
+        
         if ($is_airline) {
-            $OTCHET['2.2'] = round($penalty_v, 2);
-            $OTCHET['2.3'] = round($tax_amount, 2);
-            $OTCHET['2.4'] = round($YR_EXCHANGE, 2);
-            $OTCHET['2.5'] = $OTCHET['2.3'] - $OTCHET['2.4']; // 2.3 - 2.4
-            $OTCHET['2.6'] = $OTCHET['2.4'] / 7*3; // 2.4 / 7*3
+            $OTCHET['2.2'] = floatval($penalty_v);
+            $OTCHET['2.3'] = floatval($tax_amount); // This $tax_amount is specific to exchange section
+            $OTCHET['2.4'] = floatval($YR_EXCHANGE);
+            $OTCHET['2.5'] = floatval($OTCHET['2.3']) - floatval($OTCHET['2.4']); 
+            $OTCHET['2.6'] = floatval($OTCHET['2.4']) / 7 * 3; 
         }
 
 
@@ -1504,43 +1504,42 @@ class BigExportController extends Controller
         if (isset($groupedData['REFUND'])) {
 
             foreach ($groupedData['REFUND'] as $t) {
-                $vozvrat_tariffa += $t['tickets_FARE'];
-                $sbori_air += $t['tax_amount'];
+                $vozvrat_tariffa += floatval($t['tickets_FARE']);
+                $sbori_air += floatval($t['tax_amount']);
 
                 if ($is_airline) {
-                    $YR_REFUND += $this->get_tax_value($t, 'YR');
+                    $YR_REFUND += floatval($this->get_tax_value($t, 'YR'));
 
                 }
             }
         }
         
         if (isset($groupedData['EMD_REFUND'])) {
-
-            foreach ($groupedData['EMD_REFUND'] as $t) {
-                $penalty_s += $t['tickets_FARE'];
+            foreach ($groupedData['EMD_REFUND'] as $t) { // Ensure $t is defined if this loop runs
+                $penalty_s += floatval($t['tickets_FARE']);
             }
         }
 
-        $virochka_po_reest_voz = $vozvrat_tariffa - $penalty_s + $sbori_air + $sbori_vozrat; // Сумма по реестрам возврата
+        // $virochka_po_reest_voz = $vozvrat_tariffa - $penalty_s + $sbori_air + $sbori_vozrat; // Сумма по реестрам возврата (старый расчет)
 
-        $OTCHET['3'] = round($virochka_po_reest_voz, 2);
-        $OTCHET['3.1'] = round($vozvrat_tariffa, 2);
-        $OTCHET['3.2'] = round($penalty_s, 2);
-        $OTCHET['3.3'] = round($sbori_air, 2);
-        $OTCHET['3.4'] = round($sbori_vozrat, 2);
-
+        $OTCHET['3.1'] = $vozvrat_tariffa;
+        $OTCHET['3.2'] = $penalty_s;
+        $OTCHET['3.3'] = $sbori_air;
+        $OTCHET['3.4'] = $sbori_vozrat; // Usually 0, but keep as float
+        $OTCHET['3'] = floatval($OTCHET['3.1']) - floatval($OTCHET['3.2']) + floatval($OTCHET['3.3']) + floatval($OTCHET['3.4']); 
+        
 
         if ($is_airline) {
-            $OTCHET['3.5'] = round($YR_REFUND, 2);
-            $OTCHET['3.6'] = $OTCHET['3.3'] - $OTCHET['3.5']; // 3.3 - 3.5
-            $OTCHET['3.7'] = $OTCHET['3.5'] / 7*3; // 3.5 / 7*3
+            $OTCHET['3.5'] = floatval($YR_REFUND);
+            $OTCHET['3.6'] = floatval($OTCHET['3.3']) - floatval($OTCHET['3.5']); 
+            $OTCHET['3.7'] = floatval($OTCHET['3.5']) / 7 * 3; 
 
             // 1.1 + (1.4 + 1.5 - 1.6) + 1.3
-            $OTCHET['1'] = $OTCHET['1.1'] + $OTCHET['1.4'] + $OTCHET['1.5'] - $OTCHET['1.6'] + $OTCHET['1.3'];
+            $OTCHET['1'] = floatval($OTCHET['1.1']) + floatval($OTCHET['1.4']) + floatval($OTCHET['1.5']) - floatval($OTCHET['1.6']) + floatval($OTCHET['1.3']);
             // 2.1 + 2.2 + (2.4 + 2.5 + 2.6)
-            $OTCHET['2'] = $OTCHET['2.1'] + $OTCHET['2.2'] + $OTCHET['2.4'] + $OTCHET['2.5'] +$OTCHET['2.6']; 
+            $OTCHET['2'] = floatval($OTCHET['2.1']) + floatval($OTCHET['2.2']) + floatval($OTCHET['2.4']) + floatval($OTCHET['2.5']) + floatval($OTCHET['2.6']); 
             // 3.1 - 3.2 + (3.5 + 3.6 - 3.7) + 3.4
-            $OTCHET['3'] = $OTCHET['3.1'] - $OTCHET['3.2'] + $OTCHET['3.5'] + $OTCHET['3.6'] - $OTCHET['3.7'] + $OTCHET['3.4']; 
+            $OTCHET['3'] = floatval($OTCHET['3.1']) - floatval($OTCHET['3.2']) + floatval($OTCHET['3.5']) + floatval($OTCHET['3.6']) - floatval($OTCHET['3.7']) + floatval($OTCHET['3.4']); 
         }
 
 
@@ -1566,43 +1565,45 @@ class BigExportController extends Controller
             foreach ($groupedData['SALE'] as $t) {
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
-                $po_reestr_sale += $t['tickets_FARE'] * $reward / 100;
+                $individual_amount = (floatval($t['tickets_FARE']) * floatval($reward)) / 100;
+                $po_reestr_sale += $individual_amount;
                 
             }
         }
-
+        
         if (isset($groupedData['EXCHANGE'])) {
             foreach ($groupedData['EXCHANGE'] as $t) {
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
-                $po_reestr_exchange += $t['tickets_FARE'] * $reward / 100;
+                $individual_amount = (floatval($t['tickets_FARE']) * floatval($reward)) / 100;
+                $po_reestr_exchange += $individual_amount;
 
             }
         }
-
+        
         if (isset($groupedData['REFUND'])) {
 
             foreach ($groupedData['REFUND'] as $t) {
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
-                $po_reestr_refund += $t['tickets_FARE'] * $reward / 100;
+                $individual_amount = (floatval($t['tickets_FARE']) * floatval($reward)) / 100;
+                $po_reestr_refund += $individual_amount;
 
             }
         }
 
         
-        
 
         
-        $OTCHET['4.1'] = round($po_reestr_sale, 2);
-        $OTCHET['4.2'] = round($po_reestr_exchange, 2);
-        $OTCHET['4.3'] = round($po_reestr_refund, 2);
+        $OTCHET['4.1'] = $po_reestr_sale;
+        $OTCHET['4.2'] = $po_reestr_exchange;
+        $OTCHET['4.3'] = $po_reestr_refund;
 
 
-        $comission_rewards = $OTCHET['4.1'] + $OTCHET['4.2'] - $OTCHET['4.3']; // Комиссионное вознаграждение 
+        $comission_rewards = floatval($OTCHET['4.1']) + floatval($OTCHET['4.2']) - floatval($OTCHET['4.3']); // Комиссионное вознаграждение 
 
-        $OTCHET['4'] = round($comission_rewards, 2);
-        $OTCHET['5'] = round($OTCHET['1'] + $OTCHET['2'] - $OTCHET['3'] - $OTCHET['4'], 2); // Подлежит перечислению
+        $OTCHET['4'] = $comission_rewards;
+        $OTCHET['5'] = floatval($OTCHET['1']) + floatval($OTCHET['2']) - floatval($OTCHET['3']) - floatval($OTCHET['4']); // Подлежит перечислению
 
 
         // добавить 6 пункт Услуги
@@ -1666,7 +1667,7 @@ class BigExportController extends Controller
 
 
         // 8. Сальдо взаиморасчетов в конец D20+5+6-7
-        $OTCHET['8'] = round($OTCHET['0'] + $OTCHET['5'] + $OTCHET['6']['total'] - $OTCHET['7']['total'], 2);
+        $OTCHET['8'] = floatval($OTCHET['0']) + floatval($OTCHET['5']) + floatval($OTCHET['6']['total']) - floatval($OTCHET['7']['total']);
         // $OTCHET['8'] = round($OTCHET['0'] + $OTCHET['5'] + 2000 - $OTCHET['7']['total'], 2);
 
         
@@ -1701,11 +1702,12 @@ class BigExportController extends Controller
         $totalAmount = 0;
         $i = 0;
 
-        foreach ($serviceData as $item) {
-            $result['amounts'][$i] = ['service_name' => $item['service_name'], 'amount' => $item['amount']];
-            $totalAmount += $item['amount'];
-            $i++;
-
+        if (is_array($serviceData) || is_object($serviceData)) {
+            foreach ($serviceData as $item) {
+                $result['amounts'][$i] = ['service_name' => $item['service_name'], 'amount' => floatval($item['amount'])];
+                $totalAmount += floatval($item['amount']);
+                $i++;
+            }
         }
         
         $result['total'] = $totalAmount;
@@ -1879,7 +1881,7 @@ class BigExportController extends Controller
         $totalAmount = 0;
         foreach ($transactions as $transaction) {
             $method = $transaction['method'];
-            $amount = $transaction['amount'];
+            $amount = floatval($transaction['amount']);
             if (!isset($amounts[$method])) {
                 $amounts[$method] = 0;
             }
@@ -1887,7 +1889,7 @@ class BigExportController extends Controller
             $totalAmount += $amount;
         }
         // Преобразование в желаемый формат массива
-        $result = [];
+        $result = ['amounts' => [], 'total' => 0]; // Initialize with default structure
         $i = 0;
         foreach ($amounts as $method => $summa) {
             $result['amounts'][$i] = ['method' => $method, 'summa' => $summa];

@@ -428,38 +428,49 @@ class ReportsController extends BaseController
         
         // получаем параметры для распечатки
         $data = $this->dateForPrint($params['id']);
-
-
-
+        $finalStatus = $response['final_report_status']; // Получаем финальный статус из ответа модели
 
         // Проверка результата и возврат ответа
-        if ($response['status']) {
+        if ($response['operation_successful']) { // Проверяем успех операций в БД
 
             $message = 'Статус изменен.';
+            $message_type = 'success'; // Тип уведомления по умолчанию
 
-            switch ($params['status']) {
+            switch ($finalStatus) { // Используем финальный статус для определения сообщения
                 case '1':
                     $message = 'Отчет одобрен!';
                     break;
                 case '2':
-                    $message = 'Отчет отклонен.';
+                    // Если изначально пытались одобрить (статус '1'), но модель отклонила (статус '2')
+                    if ($params['status'] == '1' && $finalStatus == '2') {
+                        $balance_report_rounded = round(floatval($response['balance_report']), 2);
+                        $params_balance_rounded = round(floatval($response['params_balance']), 2);
+                        $message = "Отчет отклонен: Расчетная сумма ({$params_balance_rounded}) не совпадает с суммой деталей ({$balance_report_rounded}).";
+                        $message_type = 'error'; // Красное уведомление для отклонения из-за расхождения
+                    } else {
+                        $message = 'Отчет отклонен.';
+                        $message_type = 'error'; // Красное уведомление для обычного отклонения
+                    }
+                    break;
+                case '0':
+                    $message = 'Статус отчета: В обработке.';
                     break;
                 default:
                     break;
             }
 
             return $this->response->setJSON([
-                'status' => 'success',
+                'status' => $message_type, // Используем message_type для определения цвета в JS
                 'message' => $message,
                 'data' => $data,
-                'response' => $response,
+                'report_actual_status' => $finalStatus // Передаем актуальный статус в JS
                 
             ]);
         } else {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Ошибка при изменения статуса',
-                'response' => $response,
+                'response' => $response, // Для отладки
             ]);
         }
     }
