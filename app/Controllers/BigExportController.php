@@ -1665,7 +1665,7 @@ class BigExportController extends Controller
         // }
 
 
-
+        // без округления
         // 8. Сальдо взаиморасчетов в конец D20+5+6-7
         $OTCHET['8'] = floatval($OTCHET['0']) + floatval($OTCHET['5']) + floatval($OTCHET['6']['total']) - floatval($OTCHET['7']['total']);
         // $OTCHET['8'] = round($OTCHET['0'] + $OTCHET['5'] + 2000 - $OTCHET['7']['total'], 2);
