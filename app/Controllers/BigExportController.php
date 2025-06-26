@@ -1345,18 +1345,10 @@ class BigExportController extends Controller
         }
 
 
-        
-
-
-
         $params['visibleColumns'] = 'Тип билета,Валюта билета,Дата формирования,Время формирования,Тип операции,Тип транзакции,Номер билета,Номер старшего билета,Номер основного билета,Тариф цена,PNR,Дата оформления,Индентификатор продавца,Время оформления,Время оформления UTC,Сумма обмена без EMD,Код оператора,Код агентства,Сумма EMD,Вид оплаты,Сумма оплаты,ФИО,Паспорт,Тип,Гражданство,Маршрут,Перевозчик,Класс,Рейс,Дата полёта,Время полёта,Тариф,Код ППР,Код пульта,Код сбора,Сумма сбора';
-        
-
         $getData = $this->getData($params);
         $data = $getData["data"];
         $filteredHeaders = $getData["filteredHeaders"];
-
-
         $filter = session()->get('filter');
         $role = session()->get('role');
         $ids = session()->get('ids');
@@ -1384,12 +1376,9 @@ class BigExportController extends Controller
         // фильтр по 4 параметрам конструктор
 
         $table_name = $this->is_table_name($params);
-
-
         $db = \Config\Database::connect();
         $builder = $db->table('rewards');
         $results_rewards = $builder->get()->getResult();
-
         $c_name = $table_name.'_code';
         $builder = $db->table($table_name);
         $results_table = $builder->get()->getResult();
