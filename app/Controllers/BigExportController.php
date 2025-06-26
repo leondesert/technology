@@ -1373,10 +1373,13 @@ class BigExportController extends Controller
         // 0. Сальдо взаиморасчетов на начало
 
         $OTCHET = [];
-        $OTCHET['0'] = UtilsController::rounding($balance);
+        // $OTCHET['0'] = UtilsController::rounding($balance);
+        $OTCHET['0'] = $balance;
+
+
+
 
         // 1. Выручка по реестрам продажи авиабилетов 
-
 
         // фильтр по 4 параметрам конструктор
 
@@ -1400,11 +1403,11 @@ class BigExportController extends Controller
 
         if(isset($groupedData['SALE'])){
             foreach ($groupedData['SALE'] as $t) {
-                $summa_tariff += UtilsController::rounding($t['tickets_FARE']);
-                $summa_sbora += UtilsController::rounding($t['tax_amount']);
+                $summa_tariff += $t['tickets_FARE'];
+                $summa_sbora += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_SALE += UtilsController::rounding($this->get_tax_value($t, 'YR'));
+                    $YR_SALE += $this->get_tax_value($t, 'YR');
                 }
                 
             }
@@ -1430,18 +1433,15 @@ class BigExportController extends Controller
             }
         }
         
-        $virochka_po_reest_pro = $summa_tariff + $summa_sbora + $summa_za_an;
-        // $virochka_po_reest_pro = $summa_tariff + $summa_sbora + $summa_za_an;
-
-        $OTCHET['1'] = $virochka_po_reest_pro;
-        $OTCHET['1.1'] = $summa_tariff;
-        $OTCHET['1.2'] = $summa_sbora;
-        $OTCHET['1.3'] = $summa_za_an;
+        $OTCHET['1'] = UtilsController::rounding($summa_tariff + $summa_sbora + $summa_za_an);
+        $OTCHET['1.1'] = UtilsController::rounding($summa_tariff);
+        $OTCHET['1.2'] = UtilsController::rounding($summa_sbora);
+        $OTCHET['1.3'] = UtilsController::rounding($summa_za_an);
 
         if ($is_airline) {
             $OTCHET['1.4'] = UtilsController::rounding($YR_SALE);
-            $OTCHET['1.5'] = UtilsController::rounding($OTCHET['1.2']) - floatval($OTCHET['1.4']); 
-            $OTCHET['1.6'] = UtilsController::rounding($OTCHET['1.4']) / 7 * 3; 
+            $OTCHET['1.5'] = UtilsController::rounding($OTCHET['1.2'] - $OTCHET['1.4']); 
+            $OTCHET['1.6'] = UtilsController::rounding($OTCHET['1.4'] / 7 * 3); 
         }
 
 
@@ -1456,11 +1456,11 @@ class BigExportController extends Controller
         if (isset($groupedData['EXCHANGE'])) {
 
             foreach ($groupedData['EXCHANGE'] as $t) {
-                $doplata_po_tarifu += UtilsController::rounding($t['tickets_FARE']);
-                $tax_amount += UtilsController::rounding($t['tax_amount']);
+                $doplata_po_tarifu += $t['tickets_FARE'];
+                $tax_amount += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_EXCHANGE += UtilsController::rounding($this->get_tax_value($t, 'YR'));
+                    $YR_EXCHANGE += $this->get_tax_value($t, 'YR');
                 }
 
             }
@@ -1471,24 +1471,21 @@ class BigExportController extends Controller
         if (isset($groupedData['EMD_EXCHANGE'])) {
 
             foreach ($groupedData['EMD_EXCHANGE'] as $t) {  
-                $penalty_v += UtilsController::rounding($t['tickets_FARE']);
+                $penalty_v += $t['tickets_FARE'];
             }
         }
 
 
-        $penalty_v_v = $penalty_v + $tax_amount;
-        // $virochka_po_reest_obm = $doplata_po_tarifu + $penalty_v_v; // Выручка по реестрам обмена (старый расчет)
-
-        $OTCHET['2.1'] = $doplata_po_tarifu;
-        $OTCHET['2.2'] = $penalty_v_v;
-        $OTCHET['2'] = UtilsController::rounding($OTCHET['2.1']) + UtilsController::rounding($OTCHET['2.2']); 
+        $OTCHET['2.1'] = UtilsController::rounding($doplata_po_tarifu);
+        $OTCHET['2.2'] = UtilsController::rounding($penalty_v + $tax_amount);
+        $OTCHET['2'] = UtilsController::rounding($OTCHET['2.1'] + $OTCHET['2.2']);
         
         if ($is_airline) {
             $OTCHET['2.2'] = UtilsController::rounding($penalty_v);
             $OTCHET['2.3'] = UtilsController::rounding($tax_amount); // This $tax_amount is specific to exchange section
             $OTCHET['2.4'] = UtilsController::rounding($YR_EXCHANGE);
-            $OTCHET['2.5'] = UtilsController::rounding($OTCHET['2.3']) - floatval($OTCHET['2.4']); 
-            $OTCHET['2.6'] = UtilsController::rounding($OTCHET['2.4']) / 7 * 3; 
+            $OTCHET['2.5'] = UtilsController::rounding($OTCHET['2.3'] - $OTCHET['2.4']); 
+            $OTCHET['2.6'] = UtilsController::rounding($OTCHET['2.4'] / 7 * 3); 
         }
 
 
@@ -1499,16 +1496,15 @@ class BigExportController extends Controller
         $sbori_air = 0;         // Сборы (аэропортовые)
         $sbori_vozrat = 0;      // Сборы (за возврат)
         $YR_REFUND = 0;       // Сбор за бронь (YR)
-        // $YRS = [];
 
         if (isset($groupedData['REFUND'])) {
 
             foreach ($groupedData['REFUND'] as $t) {
-                $vozvrat_tariffa += UtilsController::rounding($t['tickets_FARE']);
-                $sbori_air += UtilsController::rounding($t['tax_amount']);
+                $vozvrat_tariffa += $t['tickets_FARE'];
+                $sbori_air += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_REFUND += UtilsController::rounding($this->get_tax_value($t, 'YR'));
+                    $YR_REFUND += $this->get_tax_value($t, 'YR');
 
                 }
             }
@@ -1516,7 +1512,7 @@ class BigExportController extends Controller
         
         if (isset($groupedData['EMD_REFUND'])) {
             foreach ($groupedData['EMD_REFUND'] as $t) { // Ensure $t is defined if this loop runs
-                $penalty_s += UtilsController::rounding($t['tickets_FARE']);
+                $penalty_s += $t['tickets_FARE'];
             }
         }
 
@@ -1526,7 +1522,7 @@ class BigExportController extends Controller
         $OTCHET['3.2'] = UtilsController::rounding($penalty_s);
         $OTCHET['3.3'] = UtilsController::rounding($sbori_air);
         $OTCHET['3.4'] = UtilsController::rounding($sbori_vozrat); // Usually 0, but keep as float
-        $OTCHET['3'] = $OTCHET['3.1'] - $OTCHET['3.2'] + $OTCHET['3.3'] + $OTCHET['3.4']; 
+        $OTCHET['3'] = UtilsController::rounding($OTCHET['3.1'] - $OTCHET['3.2'] + $OTCHET['3.3'] + $OTCHET['3.4']); 
         
 
         if ($is_airline) {
@@ -1566,7 +1562,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_sale += UtilsController::rounding($individual_amount);
+                $po_reestr_sale += $individual_amount;
                 
             }
         }
@@ -1576,7 +1572,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_exchange += UtilsController::rounding($individual_amount);
+                $po_reestr_exchange += $individual_amount;
 
             }
         }
@@ -1587,7 +1583,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_refund += UtilsController::rounding($individual_amount);
+                $po_reestr_refund += $individual_amount;
 
             }
         }
@@ -1599,42 +1595,18 @@ class BigExportController extends Controller
         $OTCHET['4.2'] = UtilsController::rounding($po_reestr_exchange);
         $OTCHET['4.3'] = UtilsController::rounding($po_reestr_refund);
 
+        // Комиссионное вознаграждение 
+        $OTCHET['4'] = UtilsController::rounding($OTCHET['4.1'] + $OTCHET['4.2'] - $OTCHET['4.3']);
 
-        $comission_rewards = $OTCHET['4.1'] + $OTCHET['4.2'] - $OTCHET['4.3']; // Комиссионное вознаграждение 
-
-        $OTCHET['4'] = UtilsController::rounding($comission_rewards);
-        $OTCHET['5'] = UtilsController::rounding($OTCHET['1'] + $OTCHET['2'] - $OTCHET['3'] - $OTCHET['4']); // Подлежит перечислению
-
+        // Подлежит перечислению
+        $OTCHET['5'] = UtilsController::rounding($OTCHET['1'] + $OTCHET['2'] - $OTCHET['3'] - $OTCHET['4']); 
 
         // добавить 6 пункт Услуги
         $OTCHET['6'] = $this->reportServices($params);
 
-
-        // $OTCHET['6']['total'] = '100'; //delete
-        // $OTCHET['6']['amounts'] = ['service_name' => 'dsdd', 'amount' => '100']; //delete
-
-
-
-
         // 7. Перечислено всего Фильтр по payment_date и 4 параметрам
         $transactions = $this->reportGetTransactions($params, $table_name);
         
-
-        // ================ GLOBAL замена
-
-        // $user_id = $params['user_login'];
-        // $daterange = $params['start_date'].' / '.$params['end_date'];
-        // $name_table = $params['name_table'];
-        // $value_table = $params['value_table'];
-        // $currency = $params['currency'];
-
-        // $TransactionsController = new Transactions();
-        // $transactions = $TransactionsController->upTable($user_id, $daterange, $name_table, $value_table, $currency);
-
-        //================ GLOBAL
-
-
-
 
         // разделение по методу оплаты
         $OTCHET['7'] = $this->reportTransMethodPay($transactions);
@@ -1664,23 +1636,14 @@ class BigExportController extends Controller
 
         // }
 
-
-        // без округления
         // 8. Сальдо взаиморасчетов в конец D20+5+6-7
         $OTCHET['8'] = UtilsController::rounding($OTCHET['0'] + $OTCHET['5'] + $OTCHET['6']['total'] - $OTCHET['7']['total']);
-        // $OTCHET['8'] = round($OTCHET['0'] + $OTCHET['5'] + 2000 - $OTCHET['7']['total'], 2);
-
+    
         
         if(isset($params['type'])){
             $OTCHET['type'] = $params['type'];
         }
         
-
-
-
-        
-
-
         // Отправляем ответ
         return $OTCHET;
     }
@@ -1710,7 +1673,7 @@ class BigExportController extends Controller
             }
         }
         
-        $result['total'] = $totalAmount;
+        $result['total'] = UtilsController::rounding($totalAmount);
 
         return $result;
     }
@@ -1895,7 +1858,7 @@ class BigExportController extends Controller
             $result['amounts'][$i] = ['method' => $method, 'summa' => $summa];
             $i++;
         }
-        $result['total'] = $totalAmount;
+        $result['total'] = UtilsController::rounding($totalAmount);
 
         return $result;
     }
