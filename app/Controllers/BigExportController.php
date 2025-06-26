@@ -1416,9 +1416,8 @@ class BigExportController extends Controller
                     }
                 }
 
-                // $summa_za_an += $currencyValue * $penaltyValue; // Старый вариант
-
-                $summa_za_an += ($currencyValue * round($penaltyValue));
+                $penalty = $currencyValue * $penaltyValue
+                $summa_za_an += round($penalty);
             }
         }
         
