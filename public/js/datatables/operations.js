@@ -457,8 +457,13 @@ function formatMoney2(number) {
 }
 
 function formatMoney(number) {
-    return number
+    return new Intl.NumberFormat('ru-RU', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(Number(number));
 }
+
 
 function formatCount(number) {
     return new Intl.NumberFormat('ru-RU', { 
