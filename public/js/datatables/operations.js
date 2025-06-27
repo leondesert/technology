@@ -61,7 +61,7 @@ function table_create(tableHTML, ads, totalAmount){
             tableHTML += '<tr>';
             tableHTML += '<td>' + name + '</td>';
             tableHTML += '<td>' + formatMoney(amount) + '</td>';
-            tableHTML += '<td>' + formatMoney2(count) + '</td>';
+            tableHTML += '<td>' + formatCount(count) + '</td>';
             tableHTML += '<td>' + Math.round(amount/totalAmount*100) + ' %</td>';
             // tableHTML += '<td><span class="badge bg-success">' + Math.round(amount/totalAmount*100) + ' %</span></td>';
             tableHTML += '</tr>';
@@ -455,10 +455,7 @@ function formatMoney1(number) {
     }).format(number);
 }
 
-function formatMoney(number) {
-
-    console.log(number);
-    
+function formatMoney2(number) {
     const parts = number.toString().split('.');
     let integer = parts[0];
     let decimal = (parts[1] || '').slice(0, 2).padEnd(2, '0');
@@ -467,8 +464,18 @@ function formatMoney(number) {
         .format(parseFloat(`${integer}.${decimal}`));
 }
 
+function formatMoney(number) {
+    const truncated = Math.trunc(number * 100) / 100;
+    return new Intl.NumberFormat('ru-RU', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(truncated);
+}
 
-function formatMoney2(number) {
+
+
+function formatCount(number) {
     return new Intl.NumberFormat('ru-RU', { 
         style: 'decimal', 
         minimumFractionDigits: 0,
