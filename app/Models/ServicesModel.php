@@ -165,11 +165,6 @@ class ServicesModel extends Model
         ];
 
         
-
-
-
-        
-
         $builder = $this->filters($builder, $filters);
 
 

@@ -446,16 +446,8 @@ function savedcolReorder(filters, callback) {
   });
 }
 
-// формат суммы
-function formatMoney1(number) {
-    return new Intl.NumberFormat('ru-RU', { 
-        style: 'decimal', 
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2  
-    }).format(number);
-}
-
-function formatMoney(number) {
+// отбрасывает лишние знаки после двух десятичных без округления (например, 1.999 станет 1.99)
+function formatMoney2(number) {
     const truncated = Math.trunc(number * 100) / 100;
     return new Intl.NumberFormat('ru-RU', {
         style: 'decimal',
@@ -464,7 +456,9 @@ function formatMoney(number) {
     }).format(truncated);
 }
 
-
+function formatMoney(number) {
+    return number
+}
 
 function formatCount(number) {
     return new Intl.NumberFormat('ru-RU', { 

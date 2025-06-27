@@ -5,11 +5,10 @@ namespace App\Controllers;
 class UtilsController extends BaseController
 {
 
-    //функция для округления
+    // функция для округления в большую сторону
     public static function rounding($number)
-    {
-        // return round($number, 2);
-        return $number;
+    {   
+        return round($number, 2);
     }
 
 }

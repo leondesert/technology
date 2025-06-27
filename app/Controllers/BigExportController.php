@@ -31,6 +31,7 @@ use App\Models\ReportsModel;
 use App\Models\PaysModel;
 
 
+
 use App\Controllers\LogsController;
 use App\Controllers\Transactions;
 use App\Controllers\PaysController;
@@ -377,38 +378,30 @@ class BigExportController extends Controller
                                 break; 
                             }
                         }
-
-                        $penaltyV = $this->roundCents($currencyValue * $penaltyValue);
+                        
+                        // подсчет штрафа
+                        $penaltyV = UtilsController::rounding($currencyValue * $penaltyValue);
                         
 
                         // значения для полей 'Курс валюты', 'Сумма штрафа', 'Штраф'
-                        $groupedData[$type][$k]['penalty_currency'] = $this->roundCents($currencyValue);
-                        $groupedData[$type][$k]['penalty_summa'] = $this->roundCents($penaltyValue);
-                        $groupedData[$type][$k]['penalty'] = $this->roundCents($penaltyV);
+                        $groupedData[$type][$k]['penalty_currency'] = $currencyValue;
+                        $groupedData[$type][$k]['penalty_summa'] = $penaltyValue;
+                        $groupedData[$type][$k]['penalty'] = $penaltyV;
                         
                     }
 
                     if ($type == "SALE" || $type == "REFUND" || $type == "EXCHANGE") {
 
-                        $rewardV = $t['tickets_FARE'] * $rewardValue / 100;
+                        // подсчет вознаграждении
+                        $rewardV = UtilsController::rounding($t['tickets_FARE'] * $rewardValue / 100);
+
 
                         // значения для полей 'Вознаграждение', 'Процент вознаграждение'
-                        $groupedData[$type][$k]['reward'] = $this->roundCents($rewardV);
-                        $groupedData[$type][$k]['reward_procent'] = $this->roundCents($rewardValue);
+                        $groupedData[$type][$k]['reward'] = $rewardV;
+                        $groupedData[$type][$k]['reward_procent'] = $rewardValue;
 
                     }
-                    
-                    
-                    // значения для полей tax
-                    // $uniqueTaxCodes = [
-                    //     'A2', 'AE', 'CN', 'CP', 'CS', 'DE', 'E3', 'F6', 'FX', 
-                    //     'GE', 'I6', 'IO', 'IR', 'JA', 'JN', 'M6', 'OY', 'RA', 
-                    //     'T2', 'TP', 'TR', 'UJ', 'UZ', 'YQ', 'YR', 'ZR', 'ZZ'
-                    // ];
-                    
-                    // $uniqueTaxCodes = session()->get('uniqueTaxCodes');
-                    // $rowData = array_fill_keys($uniqueTaxCodes, null);
-
+                
 
                     $taxCodes = explode(',', $t['tax_code']);
                     $taxAmounts = explode(',', $t['tax_amount_main']);
@@ -420,8 +413,6 @@ class BigExportController extends Controller
                         }
 
                     }
-
-
 
 
                 }
@@ -1313,8 +1304,8 @@ class BigExportController extends Controller
     public function get_tax_value($item, $name_tax)
     {
         
-        $taxCodes = explode(',', $item['tax_code']);
-        $taxAmounts = explode(',', $item['tax_amount_main']);
+        $taxCodes = explode(',', $item['tax_code']);            // varchar(100) A2,YR,FX,UZ
+        $taxAmounts = explode(',', $item['tax_amount_main']);   // varchar(100) 163.90,82.90,49.20,92.90
 
         // Ищем индекс 
         $taxIndex = array_search($name_tax, $taxCodes);
@@ -1322,11 +1313,11 @@ class BigExportController extends Controller
         // Проверяем, найден ли индекс и существует ли соответствующий элемент в $taxAmounts
         if ($taxIndex !== false && isset($taxAmounts[$taxIndex])) {
             // Если индекс найден
-            return floatval($taxAmounts[$taxIndex]);
+            return $taxAmounts[$taxIndex];
         }
 
         // Если индекс не найден 
-        return 0.0;
+        return 0.00;
     }
 
     public function report($params, $balance)
@@ -1360,15 +1351,10 @@ class BigExportController extends Controller
 
         
 
-        
-
         // 0. Сальдо взаиморасчетов на начало
 
         $OTCHET = [];
-        // $OTCHET['0'] = UtilsController::rounding($balance);
         $OTCHET['0'] = $balance;
-
-
 
 
         // 1. Выручка по реестрам продажи авиабилетов 
@@ -1392,11 +1378,11 @@ class BigExportController extends Controller
 
         if(isset($groupedData['SALE'])){
             foreach ($groupedData['SALE'] as $t) {
-                $summa_tariff += $t['tickets_FARE'];
-                $summa_sbora += $t['tax_amount'];
+                $summa_tariff += $t['tickets_FARE'];    // decimal(10,2)
+                $summa_sbora += $t['tax_amount'];       // decimal(10,2)
 
                 if ($is_airline) {
-                    $YR_SALE += $this->get_tax_value($t, 'YR');
+                    $YR_SALE += UtilsController::rounding($this->get_tax_value($t, 'YR')); 
                 }
                 
             }
@@ -1415,9 +1401,9 @@ class BigExportController extends Controller
                         break; 
                     }
                 }
-
-                $res_penalty = $currencyValue * $penaltyValue;
-                $summa_za_an += round($res_penalty, 4);
+                
+                // подсчет штрафа
+                $summa_za_an += UtilsController::rounding($currencyValue * $penaltyValue);
             }
         }
         
@@ -1448,7 +1434,7 @@ class BigExportController extends Controller
                 $tax_amount += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_EXCHANGE += $this->get_tax_value($t, 'YR');
+                    $YR_EXCHANGE += UtilsController::rounding($this->get_tax_value($t, 'YR'));
                 }
 
             }
@@ -1492,7 +1478,7 @@ class BigExportController extends Controller
                 $sbori_air += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_REFUND += $this->get_tax_value($t, 'YR');
+                    $YR_REFUND += UtilsController::rounding($this->get_tax_value($t, 'YR'));
 
                 }
             }
@@ -1550,7 +1536,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_sale += $individual_amount;
+                $po_reestr_sale += UtilsController::rounding($individual_amount);
                 
             }
         }
@@ -1560,7 +1546,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_exchange += $individual_amount;
+                $po_reestr_exchange += UtilsController::rounding($individual_amount);
 
             }
         }
@@ -1571,7 +1557,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_refund += $individual_amount;
+                $po_reestr_refund += UtilsController::rounding($individual_amount);
 
             }
         }
@@ -1655,13 +1641,17 @@ class BigExportController extends Controller
 
         if (is_array($serviceData) || is_object($serviceData)) {
             foreach ($serviceData as $item) {
-                $result['amounts'][$i] = ['service_name' => $item['service_name'], 'amount' => floatval($item['amount'])];
-                $totalAmount += floatval($item['amount']);
+                $result['amounts'][$i] = [
+                    'service_name' => $item['service_name'], 
+                    'amount' => $item['amount']
+                ];
+
+                $totalAmount += $item['amount']; // decimal(10,2)
                 $i++;
             }
         }
         
-        $result['total'] = UtilsController::rounding($totalAmount);
+        $result['total'] = $totalAmount;
 
         return $result;
     }
@@ -1675,8 +1665,6 @@ class BigExportController extends Controller
         // по значению _code из таблицы ищет его _id
         $key = array_search($t[$c_name], array_column($results_table, $c_name));
         $id = $results_table[$key]->$c_name2;
-
-
 
         
         // 1. поиск по маршруту и перевозчику
@@ -1832,7 +1820,7 @@ class BigExportController extends Controller
         $totalAmount = 0;
         foreach ($transactions as $transaction) {
             $method = $transaction['method'];
-            $amount = floatval($transaction['amount']);
+            $amount = $transaction['amount']; // decimal(10,2)
             if (!isset($amounts[$method])) {
                 $amounts[$method] = 0;
             }
@@ -1846,7 +1834,7 @@ class BigExportController extends Controller
             $result['amounts'][$i] = ['method' => $method, 'summa' => $summa];
             $i++;
         }
-        $result['total'] = UtilsController::rounding($totalAmount);
+        $result['total'] = $totalAmount;
 
         return $result;
     }
@@ -2368,8 +2356,7 @@ class BigExportController extends Controller
     }
   
     public function calculateSummary()
-    {   
-
+    {
         $params = $this->request->getPost();
         $transactions = $this->downTable($params);
         // $column_name = $params['colum_name'];
