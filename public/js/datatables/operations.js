@@ -447,13 +447,23 @@ function savedcolReorder(filters, callback) {
 }
 
 // формат суммы
-function formatMoney(number) {
+function formatMoney1(number) {
     return new Intl.NumberFormat('ru-RU', { 
         style: 'decimal', 
         minimumFractionDigits: 2,
         maximumFractionDigits: 2  
     }).format(number);
 }
+
+function formatMoney(number) {
+    const parts = number.toString().split('.');
+    let integer = parts[0];
+    let decimal = (parts[1] || '').slice(0, 2).padEnd(2, '0');
+    
+    return new Intl.NumberFormat('ru-RU', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        .format(parseFloat(`${integer},${decimal}`));
+}
+
 
 function formatMoney2(number) {
     return new Intl.NumberFormat('ru-RU', { 
