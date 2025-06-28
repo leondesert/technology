@@ -1382,7 +1382,7 @@ class BigExportController extends Controller
                 $summa_sbora += $t['tax_amount'];       // decimal(10,2)
 
                 if ($is_airline) {
-                    $YR_SALE += UtilsController::rounding($this->get_tax_value($t, 'YR')); 
+                    $YR_SALE += UtilsController::rounding_four($this->get_tax_value($t, 'YR')); 
                 }
                 
             }
@@ -1407,15 +1407,15 @@ class BigExportController extends Controller
             }
         }
         
-        $OTCHET['1'] = UtilsController::rounding($summa_tariff + $summa_sbora + $summa_za_an);
-        $OTCHET['1.1'] = UtilsController::rounding($summa_tariff);
-        $OTCHET['1.2'] = UtilsController::rounding($summa_sbora);
-        $OTCHET['1.3'] = UtilsController::rounding($summa_za_an);
+        $OTCHET['1'] = UtilsController::rounding_four($summa_tariff + $summa_sbora + $summa_za_an);
+        $OTCHET['1.1'] = UtilsController::rounding_four($summa_tariff);
+        $OTCHET['1.2'] = UtilsController::rounding_four($summa_sbora);
+        $OTCHET['1.3'] = UtilsController::rounding_four($summa_za_an);
 
         if ($is_airline) {
-            $OTCHET['1.4'] = UtilsController::rounding($YR_SALE);
-            $OTCHET['1.5'] = UtilsController::rounding($OTCHET['1.2'] - $OTCHET['1.4']); 
-            $OTCHET['1.6'] = UtilsController::rounding($OTCHET['1.4'] / 7 * 3); 
+            $OTCHET['1.4'] = UtilsController::rounding_four($YR_SALE);
+            $OTCHET['1.5'] = UtilsController::rounding_four($OTCHET['1.2'] - $OTCHET['1.4']); 
+            $OTCHET['1.6'] = UtilsController::rounding_four($OTCHET['1.4'] / 7 * 3); 
         }
 
 
@@ -1434,7 +1434,7 @@ class BigExportController extends Controller
                 $tax_amount += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_EXCHANGE += UtilsController::rounding($this->get_tax_value($t, 'YR'));
+                    $YR_EXCHANGE += UtilsController::rounding_four($this->get_tax_value($t, 'YR'));
                 }
 
             }
@@ -1450,16 +1450,16 @@ class BigExportController extends Controller
         }
 
 
-        $OTCHET['2.1'] = UtilsController::rounding($doplata_po_tarifu);
-        $OTCHET['2.2'] = UtilsController::rounding($penalty_v + $tax_amount);
-        $OTCHET['2'] = UtilsController::rounding($OTCHET['2.1'] + $OTCHET['2.2']);
+        $OTCHET['2.1'] = UtilsController::rounding_four($doplata_po_tarifu);
+        $OTCHET['2.2'] = UtilsController::rounding_four($penalty_v + $tax_amount);
+        $OTCHET['2'] = UtilsController::rounding_four($OTCHET['2.1'] + $OTCHET['2.2']);
         
         if ($is_airline) {
-            $OTCHET['2.2'] = UtilsController::rounding($penalty_v);
-            $OTCHET['2.3'] = UtilsController::rounding($tax_amount); // This $tax_amount is specific to exchange section
-            $OTCHET['2.4'] = UtilsController::rounding($YR_EXCHANGE);
-            $OTCHET['2.5'] = UtilsController::rounding($OTCHET['2.3'] - $OTCHET['2.4']); 
-            $OTCHET['2.6'] = UtilsController::rounding($OTCHET['2.4'] / 7 * 3); 
+            $OTCHET['2.2'] = UtilsController::rounding_four($penalty_v);
+            $OTCHET['2.3'] = UtilsController::rounding_four($tax_amount); // This $tax_amount is specific to exchange section
+            $OTCHET['2.4'] = UtilsController::rounding_four($YR_EXCHANGE);
+            $OTCHET['2.5'] = UtilsController::rounding_four($OTCHET['2.3'] - $OTCHET['2.4']); 
+            $OTCHET['2.6'] = UtilsController::rounding_four($OTCHET['2.4'] / 7 * 3); 
         }
 
 
@@ -1478,7 +1478,7 @@ class BigExportController extends Controller
                 $sbori_air += $t['tax_amount'];
 
                 if ($is_airline) {
-                    $YR_REFUND += UtilsController::rounding($this->get_tax_value($t, 'YR'));
+                    $YR_REFUND += UtilsController::rounding_four($this->get_tax_value($t, 'YR'));
 
                 }
             }
@@ -1492,24 +1492,24 @@ class BigExportController extends Controller
 
         // $virochka_po_reest_voz = $vozvrat_tariffa - $penalty_s + $sbori_air + $sbori_vozrat; // Сумма по реестрам возврата (старый расчет)
 
-        $OTCHET['3.1'] = UtilsController::rounding($vozvrat_tariffa);
-        $OTCHET['3.2'] = UtilsController::rounding($penalty_s);
-        $OTCHET['3.3'] = UtilsController::rounding($sbori_air);
-        $OTCHET['3.4'] = UtilsController::rounding($sbori_vozrat); // Usually 0, but keep as float
-        $OTCHET['3'] = UtilsController::rounding($OTCHET['3.1'] - $OTCHET['3.2'] + $OTCHET['3.3'] + $OTCHET['3.4']); 
+        $OTCHET['3.1'] = UtilsController::rounding_four($vozvrat_tariffa);
+        $OTCHET['3.2'] = UtilsController::rounding_four($penalty_s);
+        $OTCHET['3.3'] = UtilsController::rounding_four($sbori_air);
+        $OTCHET['3.4'] = UtilsController::rounding_four($sbori_vozrat); // Usually 0, but keep as float
+        $OTCHET['3'] = UtilsController::rounding_four($OTCHET['3.1'] - $OTCHET['3.2'] + $OTCHET['3.3'] + $OTCHET['3.4']); 
         
 
         if ($is_airline) {
-            $OTCHET['3.5'] = UtilsController::rounding($YR_REFUND);
-            $OTCHET['3.6'] = UtilsController::rounding($OTCHET['3.3'] - $OTCHET['3.5']); 
-            $OTCHET['3.7'] = UtilsController::rounding($OTCHET['3.5'] / 7 * 3); 
+            $OTCHET['3.5'] = UtilsController::rounding_four($YR_REFUND);
+            $OTCHET['3.6'] = UtilsController::rounding_four($OTCHET['3.3'] - $OTCHET['3.5']); 
+            $OTCHET['3.7'] = UtilsController::rounding_four($OTCHET['3.5'] / 7 * 3); 
 
             // 1.1 + (1.4 + 1.5 - 1.6) + 1.3
-            $OTCHET['1'] = UtilsController::rounding($OTCHET['1.1'] + $OTCHET['1.4'] + $OTCHET['1.5'] - $OTCHET['1.6'] + $OTCHET['1.3']);
+            $OTCHET['1'] = UtilsController::rounding_four($OTCHET['1.1'] + $OTCHET['1.4'] + $OTCHET['1.5'] - $OTCHET['1.6'] + $OTCHET['1.3']);
             // 2.1 + 2.2 + (2.4 + 2.5 + 2.6)
-            $OTCHET['2'] = UtilsController::rounding($OTCHET['2.1'] + $OTCHET['2.2'] + $OTCHET['2.4'] + $OTCHET['2.5'] + $OTCHET['2.6']); 
+            $OTCHET['2'] = UtilsController::rounding_four($OTCHET['2.1'] + $OTCHET['2.2'] + $OTCHET['2.4'] + $OTCHET['2.5'] + $OTCHET['2.6']); 
             // 3.1 - 3.2 + (3.5 + 3.6 - 3.7) + 3.4
-            $OTCHET['3'] = UtilsController::rounding($OTCHET['3.1'] - $OTCHET['3.2'] +$OTCHET['3.5'] + $OTCHET['3.6'] - $OTCHET['3.7'] + $OTCHET['3.4']); 
+            $OTCHET['3'] = UtilsController::rounding_four($OTCHET['3.1'] - $OTCHET['3.2'] +$OTCHET['3.5'] + $OTCHET['3.6'] - $OTCHET['3.7'] + $OTCHET['3.4']); 
         }
 
 
@@ -1565,15 +1565,15 @@ class BigExportController extends Controller
         
 
         
-        $OTCHET['4.1'] = UtilsController::rounding($po_reestr_sale);
-        $OTCHET['4.2'] = UtilsController::rounding($po_reestr_exchange);
-        $OTCHET['4.3'] = UtilsController::rounding($po_reestr_refund);
+        $OTCHET['4.1'] = UtilsController::rounding_four($po_reestr_sale);
+        $OTCHET['4.2'] = UtilsController::rounding_four($po_reestr_exchange);
+        $OTCHET['4.3'] = UtilsController::rounding_four($po_reestr_refund);
 
         // Комиссионное вознаграждение 
-        $OTCHET['4'] = UtilsController::rounding($OTCHET['4.1'] + $OTCHET['4.2'] - $OTCHET['4.3']);
+        $OTCHET['4'] = UtilsController::rounding_four($OTCHET['4.1'] + $OTCHET['4.2'] - $OTCHET['4.3']);
 
         // Подлежит перечислению
-        $OTCHET['5'] = UtilsController::rounding($OTCHET['1'] + $OTCHET['2'] - $OTCHET['3'] - $OTCHET['4']); 
+        $OTCHET['5'] = UtilsController::rounding_four($OTCHET['1'] + $OTCHET['2'] - $OTCHET['3'] - $OTCHET['4']); 
 
         // добавить 6 пункт Услуги
         $OTCHET['6'] = $this->reportServices($params);
@@ -1611,7 +1611,7 @@ class BigExportController extends Controller
         // }
 
         // 8. Сальдо взаиморасчетов в конец D20+5+6-7
-        $OTCHET['8'] = UtilsController::rounding($OTCHET['0'] + $OTCHET['5'] + $OTCHET['6']['total'] - $OTCHET['7']['total']);
+        $OTCHET['8'] = UtilsController::rounding_four($OTCHET['0'] + $OTCHET['5'] + $OTCHET['6']['total'] - $OTCHET['7']['total']);
     
         
         if(isset($params['type'])){
