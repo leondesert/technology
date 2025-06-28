@@ -380,7 +380,7 @@ class BigExportController extends Controller
                         }
                         
                         // подсчет штрафа
-                        $penaltyV = UtilsController::rounding($currencyValue * $penaltyValue);
+                        $penaltyV = UtilsController::rounding_four($currencyValue * $penaltyValue);
                         
 
                         // значения для полей 'Курс валюты', 'Сумма штрафа', 'Штраф'
@@ -393,7 +393,7 @@ class BigExportController extends Controller
                     if ($type == "SALE" || $type == "REFUND" || $type == "EXCHANGE") {
 
                         // подсчет вознаграждении
-                        $rewardV = UtilsController::rounding($t['tickets_FARE'] * $rewardValue / 100);
+                        $rewardV = UtilsController::rounding_four($t['tickets_FARE'] * $rewardValue / 100);
 
 
                         // значения для полей 'Вознаграждение', 'Процент вознаграждение'
@@ -1403,7 +1403,7 @@ class BigExportController extends Controller
                 }
                 
                 // подсчет штрафа
-                $summa_za_an += UtilsController::rounding($currencyValue * $penaltyValue);
+                $summa_za_an += UtilsController::rounding_four($currencyValue * $penaltyValue);
             }
         }
         
@@ -1536,7 +1536,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_sale += UtilsController::rounding($individual_amount);
+                $po_reestr_sale += UtilsController::rounding_four($individual_amount);
                 
             }
         }
@@ -1546,7 +1546,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_exchange += UtilsController::rounding($individual_amount);
+                $po_reestr_exchange += UtilsController::rounding_four($individual_amount);
 
             }
         }
@@ -1557,7 +1557,7 @@ class BigExportController extends Controller
 
                 $reward = $this->exception($t, $table_name, $results_table, $results_rewards, "reward");
                 $individual_amount = ($t['tickets_FARE'] * $reward) / 100;
-                $po_reestr_refund += UtilsController::rounding($individual_amount);
+                $po_reestr_refund += UtilsController::rounding_four($individual_amount);
 
             }
         }

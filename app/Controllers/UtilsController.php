@@ -11,4 +11,10 @@ class UtilsController extends BaseController
         return round($number, 2);
     }
 
+    public static function rounding_four($number)
+    {   
+        // Округляем число до 4 знаков после запятой
+        return round($number, 4);
+    }
+
 }
