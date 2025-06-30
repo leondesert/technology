@@ -3,6 +3,28 @@ $(document).ready(function() {
 if (window.location.pathname === '/reports') {
 
 
+/**
+ * Обновляет видимость кнопок "Принять" и "Отклонить" в зависимости от статуса отчета.
+ * @param {string|number} status - Статус отчета ('0' - в ожидании, '1' - подтвержден, '2' - отклонен).
+ */
+function updateButtonVisibility(status) {
+    const approveButton = $('#acceptReport');
+    const rejectButton = $('#rejectReport');
+
+    // Приводим статус к строке для надежного сравнения
+    const statusStr = String(status);
+
+    // По умолчанию показываем обе кнопки, чтобы сбросить их состояние при открытии нового отчета
+    approveButton.show();
+    rejectButton.show();
+
+    if (statusStr === '1') { // Статус 1: Подтвержден
+        approveButton.hide(); // Скрываем кнопку "Принять"
+    } else if (statusStr === '2') { // Статус 2: Отклонен
+        rejectButton.hide(); // Скрываем кнопку "Отклонить"
+    }
+}
+
 // Функция для показа кнопок
 function showReportButtons() {
     document.getElementById('acceptReport').classList.remove('d-none');
@@ -77,9 +99,16 @@ var table = $('#reports').DataTable({
                 data: null, // В этой колонке нет данных из таблицы
                 orderable: false,
                 render: function(data, type, row) {
-                    return `
-                        <button class="btn btn-info view-btn" data-id="${row.id}">Посмотреть</button>
+                    // Определяем числовой статус на основе текстового для data-атрибута
+                    let statusCode = '0'; // По умолчанию "В обработке"
+                    if (row.status === 'Подтвержден') {
+                        statusCode = '1';
+                    } else if (row.status === 'Отклонен') {
+                        statusCode = '2';
+                    }
 
+                    return `
+                        <button class="btn btn-info view-btn" data-id="${row.id}" data-status="${statusCode}">Посмотреть</button>
                     `;
                 }
             }
@@ -108,8 +137,12 @@ var table = $('#reports').DataTable({
 $('#reports').on('click', '.view-btn', function() {
 
     var reportId = $(this).data('id');
+    var reportStatus = $(this).data('status'); // Получаем статус прямо из кнопки
     console.log('Просмотр отчета с ID: ' + reportId);
     document.getElementById('report_id').value = reportId;
+
+    // Немедленно обновляем кнопки, не дожидаясь AJAX-запроса
+    updateButtonVisibility(reportStatus);
 
     $('#summaryModal #otchet').hide();
     $('#summaryModal #loadingAnimation').show();
@@ -127,6 +160,9 @@ $('#reports').on('click', '.view-btn', function() {
         success: function(data) {
 
             console.log(data);
+
+            // Устанавливаем правильное состояние кнопок СРАЗУ после получения данных
+            updateButtonVisibility(data.status);
 
             view_chapka(data);
 
