@@ -522,14 +522,29 @@ class ReportsController extends BaseController
         $reportId = $this->request->getPost('id');
 
         // Инициализируем модель
-        $reportModel = new ReportsModel();
+        $reportModel = new ReportsModel(); 
 
         // Проверяем, существует ли запись с данным ID
-        $report = $reportModel->find($reportId);
+        $mainReport = $reportModel->find($reportId);
 
-        if ($report) {
-            // Удаляем запись
-            $reportModel->deleteReport($reportId);
+        if ($mainReport) {
+            // Если это основной отчет (сводный)
+            if ($mainReport['is_report'] == 1) {
+                // Находим и удаляем все связанные детальные записи по списку из value_table
+                $values = explode(',', $mainReport['value_table']);
+
+                $reportModel->where('start_date', $mainReport['start_date'])
+                            ->where('end_date', $mainReport['end_date'])
+                            ->where('currency', $mainReport['currency'])
+                            ->where('report_type', $mainReport['report_type'])
+                            ->where('name_table', $mainReport['name_table'])
+                            ->where('is_report', 0)
+                            ->whereIn('value_table', $values)
+                            ->delete();
+            }
+
+            // Удаляем саму запись (основную или детальную)
+            $reportModel->delete($reportId);
 
             // Возвращаем успешный ответ
             return $this->response->setJSON([
@@ -537,7 +552,6 @@ class ReportsController extends BaseController
                 'message' => 'Отчет успешно удален'
             ]);
         } else {
-            // Если отчета не существует
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'Отчет не найден'
