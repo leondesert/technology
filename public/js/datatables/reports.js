@@ -31,8 +31,15 @@ function updateButtonVisibility(status, reportUserId) {
     approveButton.toggle(showApprove);
 
     // --- Определяем видимость кнопки "Отклонить" ---
-    // Правило: Скрыть, если отчет уже отклонен
-    const showReject = statusStr !== '2';
+    let showReject = true;
+    // Правило 1: Скрыть, если отчет уже отклонен
+    if (statusStr === '2') {
+        showReject = false;
+    }
+    // Правило 2: Скрыть, если отчет просматривает его создатель
+    if (showReject && reportUserId && currentUserId && String(reportUserId) === String(currentUserId)) {
+        showReject = false;
+    }
     // Применяем вычисленное состояние
     rejectButton.toggle(showReject);
 }
@@ -149,13 +156,13 @@ var table = $('#reports').DataTable({
 $('#reports').on('click', '.view-btn', function() {
 
     var reportId = $(this).data('id');
-    var reportStatus = $(this).data('status'); // Получаем статус прямо из кнопки
-    var reportUserId = $(this).data('user-id'); // Получаем ID создателя отчета
     console.log('Просмотр отчета с ID: ' + reportId);
     document.getElementById('report_id').value = reportId;
 
-    // Немедленно обновляем кнопки, не дожидаясь AJAX-запроса
-    updateButtonVisibility(reportStatus, reportUserId);
+    // Изначально скрываем кнопки управления отчетом.
+    // Они станут видимыми после полной загрузки данных отчета.
+    $('#acceptReport').hide();
+    $('#rejectReport').hide();
 
     $('#summaryModal #otchet').hide();
     $('#summaryModal #loadingAnimation').show();
