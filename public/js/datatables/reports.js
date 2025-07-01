@@ -3,26 +3,38 @@ $(document).ready(function() {
 if (window.location.pathname === '/reports') {
 
 
+// Предполагается, что ID текущего пользователя доступен в мета-теге в <head>
+// Например: <meta name="current-user-id" content="123">
+const currentUserId = $('meta[name="current-user-id"]').attr('content');
+
 /**
  * Обновляет видимость кнопок "Принять" и "Отклонить" в зависимости от статуса отчета.
  * @param {string|number} status - Статус отчета ('0' - в ожидании, '1' - подтвержден, '2' - отклонен).
+ * @param {string|number} reportUserId - ID пользователя, создавшего отчет.
  */
-function updateButtonVisibility(status) {
+function updateButtonVisibility(status, reportUserId) {
     const approveButton = $('#acceptReport');
     const rejectButton = $('#rejectReport');
-
-    // Приводим статус к строке для надежного сравнения
     const statusStr = String(status);
 
-    // По умолчанию показываем обе кнопки, чтобы сбросить их состояние при открытии нового отчета
-    approveButton.show();
-    rejectButton.show();
-
-    if (statusStr === '1') { // Статус 1: Подтвержден
-        approveButton.hide(); // Скрываем кнопку "Принять"
-    } else if (statusStr === '2') { // Статус 2: Отклонен
-        rejectButton.hide(); // Скрываем кнопку "Отклонить"
+    // --- Определяем видимость кнопки "Принять" ---
+    let showApprove = true;
+    // Правило 1: Скрыть, если отчет уже подтвержден
+    if (statusStr === '1') {
+        showApprove = false;
     }
+    // Правило 2: Скрыть, если отчет просматривает его создатель
+    if (showApprove && reportUserId && currentUserId && String(reportUserId) === String(currentUserId)) {
+        showApprove = false;
+    }
+    // Применяем вычисленное состояние
+    approveButton.toggle(showApprove);
+
+    // --- Определяем видимость кнопки "Отклонить" ---
+    // Правило: Скрыть, если отчет уже отклонен
+    const showReject = statusStr !== '2';
+    // Применяем вычисленное состояние
+    rejectButton.toggle(showReject);
 }
 
 // Функция для показа кнопок
@@ -108,7 +120,7 @@ var table = $('#reports').DataTable({
                     }
 
                     return `
-                        <button class="btn btn-info view-btn" data-id="${row.id}" data-status="${statusCode}">Посмотреть</button>
+                        <button class="btn btn-info view-btn" data-id="${row.id}" data-status="${statusCode}" data-user-id="${row.user_id}">Посмотреть</button>
                     `;
                 }
             }
@@ -138,11 +150,12 @@ $('#reports').on('click', '.view-btn', function() {
 
     var reportId = $(this).data('id');
     var reportStatus = $(this).data('status'); // Получаем статус прямо из кнопки
+    var reportUserId = $(this).data('user-id'); // Получаем ID создателя отчета
     console.log('Просмотр отчета с ID: ' + reportId);
     document.getElementById('report_id').value = reportId;
 
     // Немедленно обновляем кнопки, не дожидаясь AJAX-запроса
-    updateButtonVisibility(reportStatus);
+    updateButtonVisibility(reportStatus, reportUserId);
 
     $('#summaryModal #otchet').hide();
     $('#summaryModal #loadingAnimation').show();
@@ -162,7 +175,7 @@ $('#reports').on('click', '.view-btn', function() {
             console.log(data);
 
             // Устанавливаем правильное состояние кнопок СРАЗУ после получения данных
-            updateButtonVisibility(data.status);
+            updateButtonVisibility(data.data.report.status, data.data.report.user_id);
 
             view_chapka(data);
 
@@ -637,18 +650,17 @@ function generateQRCode(data, id) {
 }
 
 
-//скрыть submitReport по вне модального
-$(window).click(function(event) {
-    if (event.target == $('#summaryModal')[0]) {
-        HideElements(); 
-    }
+// При закрытии модального окна сбрасываем его состояние.
+// Это гарантирует, что при следующем открытии не останется "старых" данных или кнопок.
+$('#summaryModal').on('hidden.bs.modal', function () {
+    // Сбрасываем состояние кнопок в исходное (обе видимы)
+    $('#acceptReport').show();
+    $('#rejectReport').show();
+    // Скрываем специфичные для отчета элементы (подвал с QR-кодами и кнопку печати)
+    HideElements();
+    // Очищаем содержимое отчета, чтобы при следующем открытии не было "мелькания" старых данных
+    $('#summaryModal #otchet').html('');
 });
-
-//скрыть submitReport по закрыть
-$('#summaryModal .close, .btn-secondary[data-dismiss="modal"]').off('click').on('click', function() {
-    HideElements(); 
-});
-
 
 $('#printReport').on('click', function() {
     // Создаем новый элемент <iframe>, чтобы избежать проблем с отображением

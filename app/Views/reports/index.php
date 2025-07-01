@@ -8,6 +8,9 @@
 
 <?= $this->section('content') ?>
 
+<!-- Мета-тег с ID текущего пользователя для использования в JavaScript -->
+<meta name="current-user-id" content="<?= $user_id ?>">
+
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
