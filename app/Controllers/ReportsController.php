@@ -529,20 +529,34 @@ class ReportsController extends BaseController
 
         if ($mainReport) {
             // Если это основной отчет (сводный)
-            if ($mainReport['is_report'] == 1) {
-                // Находим и удаляем все связанные детальные записи по списку из value_table
+            if ($mainReport['is_report'] == 1) { // Это сводный отчет
+                // --- УЛУЧШЕННАЯ ЛОГИКА УДАЛЕНИЯ СВЯЗЕЙ ---
+                // Временное окно в минутах для поиска связанных записей (как в Python-скрипте)
+                $timeWindowMinutes = 5;
+
+                // Получаем все критерии для точного поиска
                 $values = explode(',', $mainReport['value_table']);
+                $query = $reportModel->where('start_date', $mainReport['start_date'])
+                                     ->where('end_date', $mainReport['end_date'])
+                                     ->where('currency', $mainReport['currency'])
+                                     ->where('report_type', $mainReport['report_type'])
+                                     ->where('name_table', $mainReport['name_table'])
+                                     ->where('is_report', 0) // Ищем только детальные записи
+                                     ->whereIn('value_table', $values);
 
-                $reportModel->where('start_date', $mainReport['start_date'])
-                            ->where('end_date', $mainReport['end_date'])
-                            ->where('currency', $mainReport['currency'])
-                            ->where('report_type', $mainReport['report_type'])
-                            ->where('name_table', $mainReport['name_table'])
-                            ->where('is_report', 0)
-                            ->whereIn('value_table', $values)
-                            ->delete();
+                // Ключевое улучшение: добавляем фильтр по времени создания (send_date)
+                // Это гарантирует, что мы удалим только ту "пачку" записей, которая была создана вместе с этим отчетом
+                if (!empty($mainReport['send_date'])) {
+                    // Используем сырой SQL для функции TIMESTAMPDIFF, т.к. в CodeIgniter 4 нет прямого аналога
+                    $query->where("ABS(TIMESTAMPDIFF(MINUTE, send_date, '{$mainReport['send_date']}')) <=", $timeWindowMinutes);
+                } else {
+                    // Если по какой-то причине у отчета нет send_date, используем старую, менее точную логику
+                    // Это маловероятно, но является хорошей подстраховкой
+                }
+
+                $query->delete(); // Выполняем удаление
             }
-
+ 
             // Удаляем саму запись (основную или детальную)
             $reportModel->delete($reportId);
 
