@@ -518,49 +518,35 @@ class ReportsController extends BaseController
 
     public function deleteReport()
     {
-        // Получаем ID отчета из POST-запроса
         $reportId = $this->request->getPost('id');
 
-        // Инициализируем модель
         $reportModel = new ReportsModel(); 
 
-        // Проверяем, существует ли запись с данным ID
         $mainReport = $reportModel->find($reportId);
 
         if ($mainReport) {
-            // Если это основной отчет (сводный)
-            if ($mainReport['is_report'] == 1) { // Это сводный отчет
-                // --- УЛУЧШЕННАЯ ЛОГИКА УДАЛЕНИЯ СВЯЗЕЙ ---
-                // Временное окно в минутах для поиска связанных записей (как в Python-скрипте)
+            if ($mainReport['is_report'] == 1) {
                 $timeWindowMinutes = 5;
 
-                // Получаем все критерии для точного поиска
                 $values = explode(',', $mainReport['value_table']);
                 $query = $reportModel->where('start_date', $mainReport['start_date'])
                                      ->where('end_date', $mainReport['end_date'])
                                      ->where('currency', $mainReport['currency'])
                                      ->where('report_type', $mainReport['report_type'])
                                      ->where('name_table', $mainReport['name_table'])
-                                     ->where('is_report', 0) // Ищем только детальные записи
+                                     ->where('is_report', 0)
                                      ->whereIn('value_table', $values);
 
-                // Ключевое улучшение: добавляем фильтр по времени создания (send_date)
-                // Это гарантирует, что мы удалим только ту "пачку" записей, которая была создана вместе с этим отчетом
                 if (!empty($mainReport['send_date'])) {
-                    // Используем сырой SQL для функции TIMESTAMPDIFF, т.к. в CodeIgniter 4 нет прямого аналога
                     $query->where("ABS(TIMESTAMPDIFF(MINUTE, send_date, '{$mainReport['send_date']}')) <=", $timeWindowMinutes);
                 } else {
-                    // Если по какой-то причине у отчета нет send_date, используем старую, менее точную логику
-                    // Это маловероятно, но является хорошей подстраховкой
                 }
 
-                $query->delete(); // Выполняем удаление
+                $query->delete(); 
             }
  
-            // Удаляем саму запись (основную или детальную)
             $reportModel->delete($reportId);
 
-            // Возвращаем успешный ответ
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Отчет успешно удален'
@@ -586,10 +572,8 @@ class ReportsController extends BaseController
             'balance' => $array['balance'],
         ];
 
-        // Преобразуем массив в JSON-строку
         $json = json_encode($data);
 
-        // Генерируем хэш с использованием HMAC SHA-256
         $hash = hash_hmac('sha256', $json, $secret_key);
 
 
@@ -599,7 +583,6 @@ class ReportsController extends BaseController
         ];
 
 
-        // Преобразуем массив в JSON-строку
         $datajson = json_encode($data);
 
 
@@ -615,4 +598,3 @@ class ReportsController extends BaseController
 
 
 }
-//checkpoint commit

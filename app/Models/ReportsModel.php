@@ -194,7 +194,8 @@ class ReportsModel extends Model
     public function countFiltered($searchValue, $filters)
     {
         $builder = $this->builder();
-        
+        $builder->join('users', 'users.user_id = reports.user_id', 'left');
+
         if ($searchValue != '') {
             $this->applySearchFilter($builder, $searchValue);
         }
@@ -209,8 +210,9 @@ class ReportsModel extends Model
     public function getFilteredData($start, $length, $searchValue, $filters, $order = [], $columns = [])
     {
         $builder = $this->builder();
+        $builder->join('users', 'users.user_id = reports.user_id', 'left');
         
-        $builder->select($this->allowedFields);
+        $builder->select('reports.*, users.user_login');
         if ($searchValue != '') {
             $this->applySearchFilter($builder, $searchValue);
         }
@@ -227,7 +229,7 @@ class ReportsModel extends Model
             $columnSortOrder = $order[0]['dir'];
             $builder->orderBy($columnName, $columnSortOrder);
         } else {
-            $builder->orderBy('status', 'DESC');
+            $builder->orderBy('reports.id', 'DESC');
         }
         $results = $builder->get($length, $start)->getResultArray();
 
@@ -244,15 +246,19 @@ class ReportsModel extends Model
     private function applySearchFilter($builder, $searchValue)
     {
         $builder->groupStart()
-            ->like('user_id', $searchValue)
-            ->orLike('start_date', $searchValue)
-            ->orLike('end_date', $searchValue)
-            ->orLike('currency', $searchValue)
-            ->orLike('name_table', $searchValue)
-            ->orLike('value_table', $searchValue)
-            ->orLike('balance', $searchValue)
-            ->orLike('is_report', $searchValue)
-            ->orLike('status', $searchValue)
+            // Поиск по ID, который начинается с введенного значения
+            ->like('reports.id', $searchValue, 'after') // 'after' создает условие 'searchValue%'
+
+            // Поиск по остальным полям (содержит значение)
+            ->orLike('users.user_login', $searchValue, 'both')
+            ->orLike('reports.start_date', $searchValue, 'both')
+            ->orLike('reports.end_date', $searchValue, 'both')
+            ->orLike('reports.currency', $searchValue, 'both')
+            ->orLike('reports.report_type', $searchValue, 'both')
+            ->orLike('reports.name_table', $searchValue, 'both')
+            ->orLike('reports.value_table', $searchValue, 'both')
+            ->orLike('reports.balance', $searchValue, 'both')
+            ->orLike('reports.status', $searchValue, 'both')
             ->groupEnd();
     }
 
@@ -316,7 +322,7 @@ class ReportsModel extends Model
         // =================== Базовый ===============//
 
         // если отчет
-        $builder->where('is_report', 1);
+        $builder->where('reports.is_report', 1);
 
 
         // по пользователю
@@ -330,11 +336,11 @@ class ReportsModel extends Model
         // $user_ids = [3, 58];
 
         if ($role === "admin") {
-            $builder->whereIn('user_id', $ids);
+            $builder->whereIn('reports.user_id', $ids);
         }elseif($role === "user"){
-            $builder->where('user_id', $user_id);
+            $builder->where('reports.user_id', $user_id);
         }
-        
+
 
         //первый раз когда заходит
         if ($filters['is_refresh'] == "yes") {
@@ -345,24 +351,24 @@ class ReportsModel extends Model
         // =================== Форма ===============//
 
         // условие
-        $builder->where('start_date' . ' >=', $filters['startDate']);
-        $builder->where('end_date' . ' <=', $filters['endDate']);
+        $builder->where('reports.start_date' . ' >=', $filters['startDate']);
+        $builder->where('reports.end_date' . ' <=', $filters['endDate']);
 
         if ($filters['user_login'] !== "all") {
-            $builder->where('user_id', $filters['user_login']);
+            $builder->where('reports.user_id', $filters['user_login']);
         }
 
         if ($filters['currency'] !== "all") {
-            $builder->where('currency', $filters['currency']);
+            $builder->where('reports.currency', $filters['currency']);
         }
         
 
         if ($filters['status'] !== "all") {
-            $builder->where('status', $filters['status']);
+            $builder->where('reports.status', $filters['status']);
         }
 
         if ($filters['name_table'] !== "all") {
-            $builder->where('name_table', $filters['name_table']);
+            $builder->where('reports.name_table', $filters['name_table']);
         }
 
         
