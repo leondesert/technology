@@ -33,6 +33,14 @@ class ReportsController extends BaseController
             $users = $userModel->where('parent', $user_id)->findAll();
         }
 
+        // Добавляем ФИО к логину для отображения в фильтре
+        foreach ($users as &$user) {
+            if (!empty(trim((string) $user['fio']))) {
+                $user['user_login'] .= ' (' . trim($user['fio']) . ')';
+            }
+        }
+        unset($user);
+
         // для поле Дата
         $dashboard = new Dashboard(); 
         $dates = $dashboard->getDates();

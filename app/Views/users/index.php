@@ -50,6 +50,7 @@ $role = $session->get('role');
                         <tr>
                             <!-- <th>user_id</th> -->
                             <th>Логин</th>
+                            <th>ФИО</th>
                             <!-- <th>agency_id</th>
                             <th>orp_id</th>
                             <th>tap_id</th>
@@ -64,8 +65,9 @@ $role = $session->get('role');
                         <?php foreach ($users as $user): ?>
                             <tr>
                                 
-                                <td><?= $user['user_login'] ?></td>
-                                <td><?= $user['role'] ?></td>
+                                <td><?= esc($user['user_login']) ?></td>
+                                <td><?= esc($user['fio']) ?></td>
+                                <td><?= esc($user['role']) ?></td>
                                 <td>
                                     <a href="<?= base_url('users/edit/' . $user['user_id']) ?>" class="btn btn-primary">Изменить</a>
                                     <a href="<?= base_url('users/delete/' . $user['user_id']) ?>" class="btn btn-danger" onclick="return confirmDelete()">Удалить</a>

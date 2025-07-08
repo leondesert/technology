@@ -296,13 +296,17 @@ class ReportsModel extends Model
     {
 
         $usersModel = new UserModel();
-        $users = $usersModel->select('user_id, user_login')->findAll();
+        $users = $usersModel->select('user_id, user_login, fio')->findAll();
 
 
         // Преобразуем массив $users в ассоциативный массив, где ключ - user_id, а значение - user_login
         $userMap = [];
         foreach ($users as $user) {
-            $userMap[$user['user_id']] = $user['user_login'];
+            $display_name = $user['user_login'];
+            if (!empty(trim((string) $user['fio']))) {
+                $display_name .= ' (' . trim($user['fio']) . ')';
+            }
+            $userMap[$user['user_id']] = $display_name;
         }
 
         // Проходим по массиву $results и заменяем user_id на user_login
@@ -311,8 +315,6 @@ class ReportsModel extends Model
                 $result['user_id'] = $userMap[$result['user_id']]; // Заменяем user_id на user_login
             }
         }
-
-
         return $results;
     }
 

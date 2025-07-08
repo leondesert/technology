@@ -59,6 +59,14 @@ class ServicesController extends BaseController
             $users = $userModel->where('parent', $user_id)->findAll();
         }
 
+        // Добавляем ФИО к логину для отображения в фильтре
+        foreach ($users as &$userfio) {
+            if (!empty(trim((string) $userfio['fio']))) {
+                $userfio['user_login'] .= ' (' . trim($userfio['fio']) . ')';
+            }
+        }
+        unset($userfio);
+
 
         // для поле Валюта
         $currencies = ['TJS', 'RUB'];
