@@ -16,6 +16,7 @@ class ReportsModel extends Model
     protected $allowedFields = [
         'id', 
         'user_id', 
+        'checker_id',
         'start_date', 
         'end_date', 
         'currency', 
@@ -105,11 +106,20 @@ class ReportsModel extends Model
         
 
 
-
-
         // === 4. обновить статус балансов и отчета
         $details_update_success = $this->updateStatusBalances($params);
-        $main_report_update_success = $this->update($params['id'], ['balance' => $params['balance'], 'status' => $params['status']]); // Обновляем основной отчет
+
+        $dataToUpdate = [
+            'balance' => $params['balance'],
+            'status' => $params['status'],
+        ];
+
+        // Если отчет одобрен (статус '1'), сохраняем ID проверяющего и дату проверки
+        if ($params['status'] == '1') {
+            $dataToUpdate['checker_id'] = $params['checker_id'];
+            $dataToUpdate['check_date'] = date('Y-m-d H:i:s');
+        }
+        $main_report_update_success = $this->update($params['id'], $dataToUpdate); // Обновляем основной отчет
 
 
 

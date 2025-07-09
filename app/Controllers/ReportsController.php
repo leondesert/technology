@@ -425,6 +425,9 @@ class ReportsController extends BaseController
     {
         // Получаем данные POST-запроса
         $params = $this->request->getPost();
+
+        // Добавляем ID текущего пользователя (проверяющего)
+        $params['checker_id'] = session()->get('user_id');
         
         
 
@@ -500,11 +503,16 @@ class ReportsController extends BaseController
         $secret_key_user = $user['secret_key'];
         $shapka = $user['user_desc'];
 
-        // пользователь текущий
-        $user_id = session()->get('user_id');
-        $user = $UserModel->find($user_id);
-        $fio_admin = $user['fio'];
-        $secret_key_admin = $user['secret_key'];
+        // пользователь, который проверил отчет (проверяющий)
+        $fio_admin = '';
+        $secret_key_admin = '';
+        if (!empty($report['checker_id'])) {
+            $checker = $UserModel->find($report['checker_id']);
+            if ($checker) {
+                $fio_admin = $checker['fio'];
+                $secret_key_admin = $checker['secret_key'];
+            }
+        }
 
         // создаем QR-code
         $qrcode_user = $this->create_qrcode($secret_key_user, $report);
