@@ -88,7 +88,7 @@ class LogsModel extends Model
         if($role === "superadmin"){
             $users = $userModel->findAll();
         }else{
-            $users = $userModel->where('parent', $user_id)->findAll();
+            $users = $userModel->where("FIND_IN_SET('$user_id', parent) >", 0)->findAll();
         }
         $userIds = array_column($users, 'user_id');
         $userIds[] = $user_id;

@@ -341,13 +341,11 @@ class ReportsModel extends Model
         $user_id = session()->get('user_id');
         $role = session()->get('role');
         $UserModel = new UserModel();
-        $users = $UserModel->select('user_id')->where('parent', $user_id)->findAll();
-        $ids = array_column($users, 'user_id');
-        $ids[] = $user_id;
-
-        // $user_ids = [3, 58];
-
+        
         if ($role === "admin") {
+            $users = $UserModel->select('user_id')->where("FIND_IN_SET('$user_id', parent) >", 0)->findAll();
+            $ids = array_column($users, 'user_id');
+            $ids[] = $user_id;
             $builder->whereIn('reports.user_id', $ids);
         }elseif($role === "user"){
             $builder->where('reports.user_id', $user_id);

@@ -26,7 +26,7 @@ class FlightLoadController extends BaseController
         if($role === "superadmin"){
             $users = $userModel->findAll();
         }else{
-            $users = $userModel->where('parent', $user_id)->findAll();
+            $users = $userModel->where("FIND_IN_SET('$user_id', parent) >", 0)->findAll();
         }
 
         // Добавляем ФИО к логину для отображения в фильтре
