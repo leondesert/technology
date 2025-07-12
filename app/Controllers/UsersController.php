@@ -38,7 +38,7 @@ class UsersController extends BaseController
         if ($role === 'superadmin'){
             $users = $UserModel->findAll();
         }else{
-            $users = $UserModel->where('parent', $user_id)->findAll();
+            $users = $UserModel->where("FIND_IN_SET({$user_id}, parent)")->findAll();
         }
         
         return view('users/index', ['users' => $users]);
@@ -218,6 +218,9 @@ class UsersController extends BaseController
                                                ->where('user_id !=', $id) 
                                                ->orderBy('user_login', 'ASC')
                                                ->findAll();
+            
+            // Подготовка выбранных родителей для мультиселекта
+            $data['selected_parents'] = !empty($user['parent']) ? explode(',', $user['parent']) : [];
         }
         
         return view('users/edit_user', $data);
@@ -286,12 +289,12 @@ class UsersController extends BaseController
         // Определение родителя
         $parent_value_for_db = null;
         if (session()->get('role') === 'superadmin') { 
-            $posted_parent_id = $this->request->getPost('parent_id');
-            if (!empty($posted_parent_id)) {
-                $parent_value_for_db = $posted_parent_id;
+            $posted_parent_ids = $this->request->getPost('parent_id'); // Will be an array
+            if (!empty($posted_parent_ids) && is_array($posted_parent_ids)) {
+                $parent_value_for_db = implode(',', $posted_parent_ids);
             } 
         } else {
-            $parent_value_for_db = $userId; 
+            $parent_value_for_db = $userId; // Non-superadmin assigns self as parent
         }
 
         // Создание нового пользователя
@@ -383,16 +386,16 @@ class UsersController extends BaseController
 
         // Parent update logic
         if (session()->get('role') === 'superadmin') { 
-            $parent_id_from_post = $this->request->getPost('parent_id');
+            $parent_ids_from_post = $this->request->getPost('parent_id'); // Array
 
-            if ($parent_id_from_post !== '' && (int)$parent_id_from_post === (int)$id) {
+            if (is_array($parent_ids_from_post) && in_array($id, $parent_ids_from_post)) {
                  return redirect()->back()->withInput()->with('error', 'Пользователь не может быть назначен сам себе в качестве родителя.');
             }
 
-            if (!empty($parent_id_from_post)) {
-                $data['parent'] = $parent_id_from_post;
+            if (!empty($parent_ids_from_post) && is_array($parent_ids_from_post)) {
+                $data['parent'] = implode(',', $parent_ids_from_post);
             } else {
-                $data['parent'] = null; 
+                $data['parent'] = null;
             }
         }
 

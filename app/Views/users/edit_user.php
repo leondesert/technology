@@ -89,12 +89,14 @@ $role = $session->get('role');
               <?php if ($role === 'superadmin'): ?>
                   <?php if (isset($potential_parents) && is_array($potential_parents)): ?>
                   <div class="form-group">
-                      <label for="parent_id">Родительский пользователь</label>
-                      <select name="parent_id" id="parent_id" class="form-control">
-                          <option value="" <?= (empty($user['parent'])) ? 'selected' : '' ?>>-- Не выбран --</option>
+                      <label for="parent_id">Родительские пользователи</label>
+                      <select name="parent_id[]" id="parent_id" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
                           <?php foreach ($potential_parents as $parent_option): ?>
-                              <option value="<?= esc($parent_option['user_id'], 'attr') ?>"
-                                  <?= (!empty($user['parent']) && $user['parent'] == $parent_option['user_id']) ? 'selected' : '' ?>>
+                              <?php
+                                  $isSelected = isset($selected_parents) && in_array($parent_option['user_id'], $selected_parents);
+                                  $selectedAttribute = $isSelected ? 'selected' : '';
+                              ?>
+                              <option value="<?= esc($parent_option['user_id'], 'attr') ?>" <?= $selectedAttribute ?>>
                                   <?= esc($parent_option['user_login']) ?> (<?= esc($parent_option['fio']) ?>)
                               </option>
                           <?php endforeach; ?>
