@@ -1638,7 +1638,7 @@ table.on('search.dt', function() {
                             };
                 } else if (name_table === "share") { 
                     criteria = {
-                                "condition": "=",
+                                "condition": "contains",
                                 "data": "Код раздачи",      
                                 "origData": "share.share_code", 
                                 "type": "string", 
