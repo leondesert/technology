@@ -59,17 +59,12 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 		Field::inst('tickets.tickets_DEAL_time'),
 		Field::inst('tickets.tickets_DEAL_utc'),
 		Field::inst('tickets.summa_no_found'),
-
+		Field::inst('(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) as share_code'),
 	)
 	// Присоединяем таблицу "opr"
 	->leftJoin( 'opr', 'opr.opr_id', '=', 'tickets.opr_id' )
 	->fields(
 		Field::inst('opr.opr_code')	
-	)
-	// Присоединяем таблицу "share"
-	->leftJoin( 'share', 'share.share_id', '=', 'tickets.share_id' )
-	->fields(
-		Field::inst('share.share_code')	
 	)
 	// Присоединяем таблицу "agency"
 	->leftJoin( 'agency', 'agency.agency_id', '=', 'tickets.agency_id' )
@@ -177,7 +172,12 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
         $dealdate = $record['tickets']['tickets_dealdate'];
         $currency = $record['tickets']['tickets_currency'];
         $tickets_FARE = $record['tickets']['tickets_FARE'];
-        $value_code = $record[$table_name][$c_name];
+        // Получаем value_code для поиска в rewards и других таблицах
+        if ($table_name == 'share') {
+            $value_code = $record['share_code']; // Теперь это строка с кодами через запятую
+        } else {
+            $value_code = $record[$table_name][$c_name];
+        }
         $citycodes = $record['segments']['citycodes'];
         $carrier = $record['segments']['carrier'];
 
@@ -416,6 +416,11 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
                     $q->where('tickets.tickets_dealdate', $criteria['value'][0], '>=')
           			  ->where('tickets.tickets_dealdate', $criteria['value'][1], '<=');
           			$const = 1;
+                } elseif ($criteria['condition'] === 'contains' && $criteria['data'] === 'Код раздачи') {
+                    $searchValue = $criteria['value'][0];
+                    // Добавляем JOIN для фильтрации по кодам раздачи
+                    $q->join('share as share_filter', 'FIND_IN_SET(share_filter.share_id, tickets.share_id) > 0', 'INNER')
+                      ->where('share_filter.share_code LIKE "%' . $searchValue . '%"', null, false);
                 }
                 
             }

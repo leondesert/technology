@@ -1356,7 +1356,7 @@ var columns = [
         // Таблица "opr"
         { data: 'opr.opr_code', title: 'Код оператора'},
         // Таблица "share" (Раздача)
-        { data: 'share.share_code', title: 'Код раздачи', name: 'share.share_code'},
+        { data: 'share_code', title: 'Код раздачи', name: 'share_code'},
         // Таблица "agency"
         { data: 'agency.agency_code', title: 'Код агентства'},
         // Таблица "emd"
@@ -1640,7 +1640,7 @@ table.on('search.dt', function() {
                     criteria = {
                                 "condition": "contains",
                                 "data": "Код раздачи",      
-                                "origData": "share.share_code", 
+                                "origData": "share_code", 
                                 "type": "string", 
                                 "value": [value_table]   
                             };
