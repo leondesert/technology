@@ -113,7 +113,17 @@ class BigExportController extends Controller
                     break;
 
                 case 'contains':
-                    $logic === 'OR' ? $builder->orLike($condition['origData'], $condition['value'][0]) : $builder->like($condition['origData'], $condition['value'][0]);
+                    // Специальная обработка для кодов раздачи
+                                    if ($condition['origData'] === 'share_code') {
+                    $searchValue = $condition['value'][0];
+                    if ($logic === 'OR') {
+                        $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}%'", null, false);
+                    } else {
+                        $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}%'", null, false);
+                    }
+                    } else {
+                        $logic === 'OR' ? $builder->orLike($condition['origData'], $condition['value'][0]) : $builder->like($condition['origData'], $condition['value'][0]);
+                    }
                     break;
 
                 case '!contains':
@@ -2169,7 +2179,7 @@ class BigExportController extends Controller
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_TRANS_TYPE', 'tickets.tickets_type', 'fops.fops_amount', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'opr.opr_code', 'share.share_code', 'segments.flydate', 'segments.citycodes'];
+        $ticketsFields = ['tickets.tickets_TRANS_TYPE', 'tickets.tickets_type', 'fops.fops_amount', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'opr.opr_code', 'segments.flydate', 'segments.citycodes'];
 
         // $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount'];
 
@@ -2181,10 +2191,12 @@ class BigExportController extends Controller
         $builder->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left');
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left');
         $builder->join('agency', 'agency.agency_id = tickets.agency_id', 'left');
-        $builder->join('share', 'share.share_id = tickets.share_id', 'left');
         $builder->join('stamp', 'stamp.stamp_id = tickets.stamp_id', 'left');
         $builder->join('tap', 'tap.tap_id = tickets.tap_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
+        
+        // Специальная обработка для share - добавляем поле с кодами раздачи
+        $builder->select("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) as share_code");
 
         // Условное присоединение таблицы passengers, если фильтр идет по ее полям
         $joinPassengers = false;
@@ -2401,10 +2413,30 @@ class BigExportController extends Controller
                 $summary[$ticketType][$type]['count'] += 1;
             }
 
+            // Обработка множественных кодов раздачи
+            $currentCode = $transaction[$column_name];
+            if ($name_table === 'share' && !empty($currentCode)) {
+                // Если фильтруем по коду раздачи, используем только найденный код
+                if (isset($params['searchBuilder']['criteria'])) {
+                    foreach ($params['searchBuilder']['criteria'] as $criteria) {
+                        if ($criteria['data'] === 'Код раздачи' && $criteria['condition'] === 'contains') {
+                            $searchValue = $criteria['value'][0];
+                            $shareCodes = explode(',', $currentCode);
+                            foreach ($shareCodes as $code) {
+                                $code = trim($code);
+                                if (strpos($code, $searchValue) !== false) {
+                                    $currentCode = $code; // Используем только найденный код
+                                    break 2; // Выходим из обоих циклов
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // уникальные значения
-            if (!in_array($transaction[$column_name], $agencyCodes)) {
-                $agencyCodes[] = $transaction[$column_name];
+            if (!in_array($currentCode, $agencyCodes)) {
+                $agencyCodes[] = $currentCode;
             }
 
             
@@ -2424,7 +2456,7 @@ class BigExportController extends Controller
                             }
 
 
-                            if ($transaction[$column_name] === $u) {
+                            if ($currentCode === $u) {
                                 $operations[$a][$b][$u]['amount'] += $transaction['fops_amount'];
                                 $operations[$a][$b][$u]['count'] += 1;
                             }
