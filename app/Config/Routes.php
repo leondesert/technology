@@ -195,6 +195,7 @@ $routes->post('/reports/show_report', 'ReportsController::show_report');
 $routes->post('/reports/updateStatus', 'ReportsController::updateStatus');
 $routes->post('/reports/delete', 'ReportsController::deleteReport');
 $routes->post('/reports/create_qrcode', 'ReportsController::create_qrcode');
+$routes->post('/reports/notifications', 'ReportsController::getNotifications');
 
 
 
