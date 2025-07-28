@@ -98,6 +98,48 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/datetime/1.5.1/css/dataTables.dateTime.min.css">
+
+  <!-- Стили для уведомлений -->
+  <style>
+    .notification-badge {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background-color: #dc3545;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 18px;
+      padding: 0 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    
+    .notification-badge.badge-success {
+      background-color: #28a745;
+    }
+    
+    .notification-badge.badge-warning {
+      background-color: #ffc107;
+      color: #212529;
+    }
+    
+    .notification-badge.badge-danger {
+      background-color: #dc3545;
+    }
+    
+    .nav-item {
+      position: relative;
+    }
+    
+    .nav-link {
+      position: relative;
+    }
+  </style>
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchbuilder/1.6.0/css/searchBuilder.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>css/editor.dataTables.min.css"> 
@@ -299,10 +341,11 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
                 </a>
               </li>
               <li class="nav-item">
-                <a href="/reports" class="nav-link">
+                <a href="/reports" class="nav-link" id="reports-menu-item">
                   <i class="nav-icon fas fa-copy"></i>
                   <p>
                     Отчеты
+                    <span class="notification-badge" id="reports-notification" style="display: none;"></span>
                   </p>
                 </a>
               </li>
@@ -550,6 +593,68 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
 <script src="<?= base_url(); ?>dist/js/adminlte.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="<?= base_url(); ?>dist/js/demo.js"></script>
+
+<!-- Скрипт для уведомлений -->
+<script>
+  $(document).ready(function() {
+    // Функция для обновления уведомлений
+    function updateNotifications() {
+      $.ajax({
+        url: '/reports/notifications',
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+          const notificationBadge = $('#reports-notification');
+          
+          if (response.hasNotification && response.notification) {
+            const notification = response.notification;
+            
+            // Обновляем текст и цвет уведомления
+            notificationBadge.text(notification.count);
+            notificationBadge.removeClass('badge-success badge-warning badge-danger');
+            notificationBadge.addClass('badge-' + notification.color);
+            notificationBadge.show();
+          } else {
+            // Скрываем уведомление, если его нет
+            notificationBadge.hide();
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error('Ошибка при получении уведомлений:', error);
+        }
+      });
+    }
+
+    // Обновляем уведомления при загрузке страницы
+    updateNotifications();
+
+    // Обновляем уведомления каждые 30 секунд
+    setInterval(updateNotifications, 30000);
+
+    // Обновляем уведомления при фокусе на окне (когда пользователь возвращается на вкладку)
+    $(window).on('focus', function() {
+      updateNotifications();
+    });
+
+    // Функция для обновления уведомления из ответа AJAX
+    function updateNotificationFromResponse(response) {
+      if (response.hasNotification && response.notification) {
+        const notification = response.notification;
+        const notificationBadge = $('#reports-notification');
+        
+        notificationBadge.text(notification.count);
+        notificationBadge.removeClass('badge-success badge-warning badge-danger');
+        notificationBadge.addClass('badge-' + notification.color);
+        notificationBadge.show();
+      } else {
+        $('#reports-notification').hide();
+      }
+    }
+
+    // Глобальная функция для обновления уведомлений (доступна из других скриптов)
+    window.updateNotificationFromResponse = updateNotificationFromResponse;
+  });
+</script>
 
 
 <!-- DataTables  & Plugins -->

@@ -1865,6 +1865,10 @@ $('#submitReport').click(function(){
                 toastr.error(response.message);
             }
 
+            // Обновляем уведомления в меню
+            if (window.updateNotificationFromResponse && response.hasNotification !== undefined) {
+                window.updateNotificationFromResponse(response);
+            }
 
             // Возвращаем кнопку в активное состояние и восстанавливаем текст
             $submitButton.prop('disabled', false);

@@ -509,6 +509,11 @@ $('#acceptReport').on('click', function() {
 
                 // обновить таблицу
                 table.ajax.reload();
+
+                // Обновляем уведомления в меню
+                if (window.updateNotificationFromResponse && response.hasNotification !== undefined) {
+                    window.updateNotificationFromResponse(response);
+                }
             },
             error: function(error) {
                 console.log("error: ", error);
@@ -547,6 +552,11 @@ $('#rejectReport').on('click', function() {
 
                 // обновить таблицу
                 table.ajax.reload();
+
+                // Обновляем уведомления в меню
+                if (window.updateNotificationFromResponse && response.hasNotification !== undefined) {
+                    window.updateNotificationFromResponse(response);
+                }
             },
             error: function(error) {
                 console.log("error: ", error);
@@ -581,6 +591,11 @@ $('#deleteReport').on('click', function() {
 
                 // обновить таблицу
                 table.ajax.reload();
+
+                // Обновляем уведомления в меню
+                if (window.updateNotificationFromResponse && response.hasNotification !== undefined) {
+                    window.updateNotificationFromResponse(response);
+                }
             },
             error: function() {
                 console.log("error: ", error);
