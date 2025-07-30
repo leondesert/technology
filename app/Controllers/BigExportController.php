@@ -96,20 +96,60 @@ class BigExportController extends Controller
         foreach ($criteria as $condition) {
             switch ($condition['condition']) {
                 case '=':
-                    // Используем метод orWhere или where в зависимости от логики
-                    $logic === 'OR' ? $builder->orWhere($condition['origData'], $condition['value'][0]) : $builder->where($condition['origData'], $condition['value'][0]);
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}%'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}%'", null, false);
+                        }
+                    } else {
+                        // Используем метод orWhere или where в зависимости от логики
+                        $logic === 'OR' ? $builder->orWhere($condition['origData'], $condition['value'][0]) : $builder->where($condition['origData'], $condition['value'][0]);
+                    }
                     break;
 
                 case '!=':
-                    $logic === 'OR' ? $builder->orWhere($condition['origData'] . ' !=', $condition['value'][0]) : $builder->where($condition['origData'] . ' !=', $condition['value'][0]);
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '%{$searchValue}%'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '%{$searchValue}%'", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orWhere($condition['origData'] . ' !=', $condition['value'][0]) : $builder->where($condition['origData'] . ' !=', $condition['value'][0]);
+                    }
                     break;
 
                 case 'starts':
-                    $logic === 'OR' ? $builder->orLike($condition['origData'], $condition['value'][0], 'after') : $builder->like($condition['origData'], $condition['value'][0], 'after');
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '{$searchValue}%'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '{$searchValue}%'", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orLike($condition['origData'], $condition['value'][0], 'after') : $builder->like($condition['origData'], $condition['value'][0], 'after');
+                    }
                     break;
 
                 case '!starts':
-                    $logic === 'OR' ? $builder->orNotLike($condition['origData'], $condition['value'][0], 'after') : $builder->notLike($condition['origData'], $condition['value'][0], 'after');
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '{$searchValue}%'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '{$searchValue}%'", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orNotLike($condition['origData'], $condition['value'][0], 'after') : $builder->notLike($condition['origData'], $condition['value'][0], 'after');
+                    }
                     break;
 
                 case 'contains':
@@ -127,23 +167,71 @@ class BigExportController extends Controller
                     break;
 
                 case '!contains':
-                    $logic === 'OR' ? $builder->orNotLike($condition['origData'], $condition['value'][0]) : $builder->notLike($condition['origData'], $condition['value'][0]);
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '%{$searchValue}%'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '%{$searchValue}%'", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orNotLike($condition['origData'], $condition['value'][0]) : $builder->notLike($condition['origData'], $condition['value'][0]);
+                    }
                     break;
 
                 case 'ends':
-                    $logic === 'OR' ? $builder->orLike($condition['origData'], $condition['value'][0], 'before') : $builder->like($condition['origData'], $condition['value'][0], 'before');
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}'", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orLike($condition['origData'], $condition['value'][0], 'before') : $builder->like($condition['origData'], $condition['value'][0], 'before');
+                    }
                     break;
 
                 case '!ends':
-                    $logic === 'OR' ? $builder->orNotLike($condition['origData'], $condition['value'][0], 'before') : $builder->notLike($condition['origData'], $condition['value'][0], 'before');
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        $searchValue = $condition['value'][0];
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '%{$searchValue}'", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) NOT LIKE '%{$searchValue}'", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orNotLike($condition['origData'], $condition['value'][0], 'before') : $builder->notLike($condition['origData'], $condition['value'][0], 'before');
+                    }
                     break;
 
                 case 'null':
-                    $logic === 'OR' ? $builder->orWhere($condition['origData'] . ' IS NULL') : $builder->where($condition['origData'] . ' IS NULL');
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) IS NULL", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) IS NULL", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orWhere($condition['origData'] . ' IS NULL') : $builder->where($condition['origData'] . ' IS NULL');
+                    }
                     break;
 
                 case '!null':
-                    $logic === 'OR' ? $builder->orWhere($condition['origData'] . ' IS NOT NULL') : $builder->where($condition['origData'] . ' IS NOT NULL');
+                    // Специальная обработка для кодов раздачи
+                    if ($condition['origData'] === 'share_code') {
+                        if ($logic === 'OR') {
+                            $builder->orWhere("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) IS NOT NULL", null, false);
+                        } else {
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) IS NOT NULL", null, false);
+                        }
+                    } else {
+                        $logic === 'OR' ? $builder->orWhere($condition['origData'] . ' IS NOT NULL') : $builder->where($condition['origData'] . ' IS NOT NULL');
+                    }
                     break;
 
                 case '<':
@@ -205,7 +293,7 @@ class BigExportController extends Controller
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'share.share_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
+        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', '(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) as share_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
 
         // Заголовки
         $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код раздачи', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
@@ -2227,11 +2315,16 @@ class BigExportController extends Controller
         // для Dashboard
         if ($params['page'] !== "operations") {
             if(isset($params['name_table'])){
-                $name_colum = $params['name_table'].".".$params['name_table']."_code";
-
                 if ($params['name_table'] !== "all") {
                     if ($params['value_table'] !== "all") {
-                        $builder->where($name_colum, $params['value_table']);
+                        // Специальная обработка для share_code
+                        if ($params['name_table'] === 'share') {
+                            $searchValue = $params['value_table'];
+                            $builder->where("(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$searchValue}%'", null, false);
+                        } else {
+                            $name_colum = $params['name_table'].".".$params['name_table']."_code";
+                            $builder->where($name_colum, $params['value_table']);
+                        }
                     }else{
                         $gettable = new Transactions(); 
                         $tableDatas = $gettable->gettable($params['name_table'], $params['user_login']);
@@ -2241,7 +2334,21 @@ class BigExportController extends Controller
                             $values[] = $item[$colum];
                         }
 
-                        $builder->whereIn($name_colum, $values);
+                        // Специальная обработка для share_code
+                        if ($params['name_table'] === 'share') {
+                            $conditions = [];
+                            foreach($values as $value) {
+                                $conditions[] = "(SELECT GROUP_CONCAT(share_code) FROM share WHERE FIND_IN_SET(share_id, tickets.share_id) > 0) LIKE '%{$value}%'";
+                            }
+                            $builder->groupStart();
+                            foreach($conditions as $condition) {
+                                $builder->orWhere($condition, null, false);
+                            }
+                            $builder->groupEnd();
+                        } else {
+                            $name_colum = $params['name_table'].".".$params['name_table']."_code";
+                            $builder->whereIn($name_colum, $values);
+                        }
                     }
                 }
             }
