@@ -72,28 +72,11 @@ class NotificationService
             }
         }
 
-        // Определяем приоритет: красный > желтый > зеленый
-        if ($rejectedCount > 0) {
-            return [
-                'color' => 'danger',
-                'count' => $rejectedCount,
-                'priority' => 'rejected'
-            ];
-        } elseif ($pendingCount > 0) {
-            return [
-                'color' => 'warning',
-                'count' => $pendingCount,
-                'priority' => 'pending'
-            ];
-        } elseif ($approvedCount > 0) {
-            return [
-                'color' => 'success',
-                'count' => $approvedCount,
-                'priority' => 'approved'
-            ];
-        }
-
-        return null; // Нет уведомлений
+        return [
+            'approved' => $approvedCount,
+            'pending' => $pendingCount,
+            'rejected' => $rejectedCount,
+        ];
     }
 
     /**
@@ -122,28 +105,11 @@ class NotificationService
             }
         }
 
-        // Для superadmin приоритет: желтый > красный > зеленый (как у parent)
-        if ($pendingCount > 0) {
-            return [
-                'color' => 'warning',
-                'count' => $pendingCount,
-                'priority' => 'pending'
-            ];
-        } elseif ($rejectedCount > 0) {
-            return [
-                'color' => 'danger',
-                'count' => $rejectedCount,
-                'priority' => 'rejected'
-            ];
-        } elseif ($approvedCount > 0) {
-            return [
-                'color' => 'success',
-                'count' => $approvedCount,
-                'priority' => 'approved'
-            ];
-        }
-
-        return null; // Нет уведомлений
+        return [
+            'approved' => $approvedCount,
+            'pending' => $pendingCount,
+            'rejected' => $rejectedCount,
+        ];
     }
 
     /**
@@ -181,28 +147,11 @@ class NotificationService
             }
         }
 
-        // Для parent пользователей приоритет: желтый > красный > зеленый
-        if ($pendingCount > 0) {
-            return [
-                'color' => 'warning',
-                'count' => $pendingCount,
-                'priority' => 'pending'
-            ];
-        } elseif ($rejectedCount > 0) {
-            return [
-                'color' => 'danger',
-                'count' => $rejectedCount,
-                'priority' => 'rejected'
-            ];
-        } elseif ($approvedCount > 0) {
-            return [
-                'color' => 'success',
-                'count' => $approvedCount,
-                'priority' => 'approved'
-            ];
-        }
-
-        return null; // Нет уведомлений
+        return [
+            'approved' => $approvedCount,
+            'pending' => $pendingCount,
+            'rejected' => $rejectedCount,
+        ];
     }
 
     /**
@@ -256,4 +205,4 @@ class NotificationService
 
         return $stats;
     }
-} 
+}
