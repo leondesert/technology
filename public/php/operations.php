@@ -198,25 +198,9 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
         $c_name2 = $table_name.'_id';
 
         // получить таблицу по $table_name
-        if ($table_name == 'share') {
-            // Специальная обработка для share_code - разбиваем на отдельные коды и ищем каждый
-            $shareCodes = explode(',', $value_code);
-            $results_table = [];
-            foreach ($shareCodes as $code) {
-                $code = trim($code);
-                $query = $editor->db()->sql(
-                    "SELECT `{$c_name2}`, reward, penalty FROM `{$table_name}` WHERE `{$c_name}` = '{$code}' LIMIT 1"
-                )->fetchAll();
-                if (!empty($query)) {
-                    $results_table = $query;
-                    break; // Используем первый найденный
-                }
-            }
-        } else {
-            $results_table = $editor->db()->sql(
-                "SELECT `{$c_name2}`, reward, penalty FROM `{$table_name}` WHERE `{$c_name}` = '{$value_code}' LIMIT 1"
-            )->fetchAll();
-        }
+        $results_table = $editor->db()->sql(
+            "SELECT `{$c_name2}`, reward, penalty FROM `{$table_name}` WHERE `{$c_name}` = '{$value_code}' LIMIT 1"
+        )->fetchAll();
 
         // получить таблицу rewards
         $results_rewards = $editor->db()->sql(
@@ -226,7 +210,7 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 
 
         // 1. поиск по маршруту и перевозчику
-        if (!empty($results_rewards) && !empty($results_table)) {
+        if (!empty($results_rewards)) {
 
         	// 1.1 поиск конкретного маршрута
 	        foreach ($results_rewards as $row) {
@@ -271,7 +255,7 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
                 
 
 		        foreach ($results_rewards as $row) {
-		        	if ($rewardValue === null && !empty($results_table)){
+		        	if ($rewardValue === null){
 		        		if ($row['method'] === 'reward' 
 		        			&& $row['type'] === 'citycodes' 
 		        			&& ($row['code'] === $prefixStartEnd 
@@ -285,7 +269,7 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 		                	break;
 		            	}
 		        	}
-		        	if ($penaltyValue === null && !empty($results_table)){
+		        	if ($penaltyValue === null){
 		        		if ($row['method'] === 'penalty' && $row['type'] === 'citycodes' && ($row['code'] === $prefixStart || $row['code'] === $prefixEnd || ($prefixMiddle && $row['code'] === $prefixMiddle))
 		                && $row['name'] === $table_name 
 		                && $row['value'] === $results_table[0][$c_name2]) {
@@ -304,7 +288,7 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 
 			    foreach ($results_rewards as $row) {
 
-			    	if ($rewardValue === null && !empty($results_table)){
+			    	if ($rewardValue === null){
 			    		if ($row['method'] === 'reward' && $row['type'] === 'carrier' && $row['code'] === $carrier && $row['name'] === $table_name && $row['value'] === $results_table[0][$c_name2]) {
 
 			        		// Установка вознаграждения
@@ -312,7 +296,7 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 			        		break;
 			        	}
 			    	}
-			    	if ($penaltyValue === null && !empty($results_table)){
+			    	if ($penaltyValue === null){
 			    		if ($row['method'] === 'penalty' && $row['type'] === 'carrier' && $row['code'] === $carrier && $row['name'] === $table_name && $row['value'] === $results_table[0][$c_name2]) {
 
 			        		// Установка вознаграждения
