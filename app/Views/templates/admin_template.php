@@ -101,10 +101,13 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
 
   <!-- Стили для уведомлений -->
   <style>
+    .notification-badge-container {
+        display: flex;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+    }
     .notification-badge {
-      position: absolute;
-      top: 5px;
-      right: 10px;
       min-width: 18px;
       height: 18px;
       border-radius: 50%;
@@ -117,6 +120,7 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
       padding: 0 4px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
       z-index: 1000;
+      margin-left: 2px;
     }
     
     .notification-badge.badge-success {
@@ -345,7 +349,11 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
                   <i class="nav-icon fas fa-copy"></i>
                   <p>
                     Отчеты
-                    <span class="notification-badge" id="reports-notification" style="display: none;"></span>
+                    <span class="notification-badge-container">
+                      <span class="notification-badge badge-success" id="reports-notification-approved" style="display: none;"></span>
+                      <span class="notification-badge badge-warning" id="reports-notification-pending" style="display: none;"></span>
+                      <span class="notification-badge badge-danger" id="reports-notification-rejected" style="display: none;"></span>
+                    </span>
                   </p>
                 </a>
               </li>
@@ -604,19 +612,39 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
         type: 'POST',
         dataType: 'json',
         success: function(response) {
-          const notificationBadge = $('#reports-notification');
+          const approvedBadge = $('#reports-notification-approved');
+          const pendingBadge = $('#reports-notification-pending');
+          const rejectedBadge = $('#reports-notification-rejected');
           
           if (response.hasNotification && response.notification) {
             const notification = response.notification;
-            
-            // Обновляем текст и цвет уведомления
-            notificationBadge.text(notification.count);
-            notificationBadge.removeClass('badge-success badge-warning badge-danger');
-            notificationBadge.addClass('badge-' + notification.color);
-            notificationBadge.show();
+
+            // Approved
+            if (notification.approved > 0) {
+                approvedBadge.text(notification.approved).show();
+            } else {
+                approvedBadge.hide();
+            }
+
+            // Pending
+            if (notification.pending > 0) {
+                pendingBadge.text(notification.pending).show();
+            } else {
+                pendingBadge.hide();
+            }
+
+            // Rejected
+            if (notification.rejected > 0) {
+                rejectedBadge.text(notification.rejected).show();
+            } else {
+                rejectedBadge.hide();
+            }
+
           } else {
             // Скрываем уведомление, если его нет
-            notificationBadge.hide();
+            approvedBadge.hide();
+            pendingBadge.hide();
+            rejectedBadge.hide();
           }
         },
         error: function(xhr, status, error) {
@@ -638,17 +666,37 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
 
     // Функция для обновления уведомления из ответа AJAX
     function updateNotificationFromResponse(response) {
-      if (response.hasNotification && response.notification) {
-        const notification = response.notification;
-        const notificationBadge = $('#reports-notification');
-        
-        notificationBadge.text(notification.count);
-        notificationBadge.removeClass('badge-success badge-warning badge-danger');
-        notificationBadge.addClass('badge-' + notification.color);
-        notificationBadge.show();
-      } else {
-        $('#reports-notification').hide();
-      }
+        if (response.hasNotification && response.notification) {
+            const notification = response.notification;
+            const approvedBadge = $('#reports-notification-approved');
+            const pendingBadge = $('#reports-notification-pending');
+            const rejectedBadge = $('#reports-notification-rejected');
+
+            // Approved
+            if (notification.approved > 0) {
+                approvedBadge.text(notification.approved).show();
+            } else {
+                approvedBadge.hide();
+            }
+
+            // Pending
+            if (notification.pending > 0) {
+                pendingBadge.text(notification.pending).show();
+            } else {
+                pendingBadge.hide();
+            }
+
+            // Rejected
+            if (notification.rejected > 0) {
+                rejectedBadge.text(notification.rejected).show();
+            } else {
+                rejectedBadge.hide();
+            }
+        } else {
+            $('#reports-notification-approved').hide();
+            $('#reports-notification-pending').hide();
+            $('#reports-notification-rejected').hide();
+        }
     }
 
     // Глобальная функция для обновления уведомлений (доступна из других скриптов)

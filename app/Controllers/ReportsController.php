@@ -299,13 +299,23 @@ class ReportsController extends BaseController
             $notificationService = new \App\Services\NotificationService();
             $notification = $notificationService->getReportNotifications(session()->get('user_id'), session()->get('role'));
 
+            $hasNotification = false;
+            if ($notification) {
+                foreach ($notification as $count) {
+                    if ($count > 0) {
+                        $hasNotification = true;
+                        break;
+                    }
+                }
+            }
+
             // ответ
             return $this->response->setJSON([
                     'status' => 'success',
                     'message' => 'Отчет успешно отправлен!', 
                     'report_type' => $report_type,
                     'notification' => $notification,
-                    'hasNotification' => $notification !== null
+                    'hasNotification' => $hasNotification
                 ]);
 
         }else{
@@ -480,13 +490,23 @@ class ReportsController extends BaseController
             $notificationService = new \App\Services\NotificationService();
             $notification = $notificationService->getReportNotifications(session()->get('user_id'), session()->get('role'));
 
+            $hasNotification = false;
+            if ($notification) {
+                foreach ($notification as $count) {
+                    if ($count > 0) {
+                        $hasNotification = true;
+                        break;
+                    }
+                }
+            }
+
             return $this->response->setJSON([
                 'status' => $message_type, // Используем message_type для определения цвета в JS
                 'message' => $message,
                 'data' => $data,
                 'report_actual_status' => $finalStatus, // Передаем актуальный статус в JS
                 'notification' => $notification,
-                'hasNotification' => $notification !== null
+                'hasNotification' => $hasNotification
                 
             ]);
         } else {
@@ -579,11 +599,21 @@ class ReportsController extends BaseController
             $notificationService = new \App\Services\NotificationService();
             $notification = $notificationService->getReportNotifications(session()->get('user_id'), session()->get('role'));
 
+            $hasNotification = false;
+            if ($notification) {
+                foreach ($notification as $count) {
+                    if ($count > 0) {
+                        $hasNotification = true;
+                        break;
+                    }
+                }
+            }
+
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Отчет успешно удален',
                 'notification' => $notification,
-                'hasNotification' => $notification !== null
+                'hasNotification' => $hasNotification
             ]);
         } else {
             return $this->response->setJSON([
@@ -610,9 +640,19 @@ class ReportsController extends BaseController
         $notificationService = new \App\Services\NotificationService();
         $notification = $notificationService->getReportNotifications($userId, $role);
 
+        $hasNotification = false;
+        if ($notification) {
+            foreach ($notification as $count) {
+                if ($count > 0) {
+                    $hasNotification = true;
+                    break;
+                }
+            }
+        }
+
         return $this->response->setJSON([
             'notification' => $notification,
-            'hasNotification' => $notification !== null
+            'hasNotification' => $hasNotification
         ]);
     }
     
