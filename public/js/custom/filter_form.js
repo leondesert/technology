@@ -88,29 +88,34 @@ document.addEventListener('DOMContentLoaded', function () {
                                 option_name = ' (' + item[var3] + ')';
                             }
                             
-
-                            // создать опцию
-                            option = new Option(item[var1] + option_name, item[var1]);
-
-
-                            // if (window.location.pathname === '/transactions/create' 
-                            //     || window.location.pathname === '/transactions'
-                            //     || window.location.pathname === '/services/create'
-                            //     || window.location.pathname === '/services'){
-                            //     option = new Option(item[var1] + option_name, item[var2]);
-                            // }else{
-                            //     option = new Option(item[var1] + option_name, item[var1]);
-                            // }
-
-
+                            // создать опцию - для транзакций и сервисов используем ID, для остального - код
+                            if (window.location.pathname === '/transactions/create' 
+                                || window.location.pathname === '/transactions'
+                                || window.location.pathname.startsWith('/transactions/edit/')
+                                || window.location.pathname === '/services/create'
+                                || window.location.pathname === '/services'){
+                                option = new Option(item[var1] + option_name, item[var2]);
+                            }else{
+                                option = new Option(item[var1] + option_name, item[var1]);
+                            }
 
                             // Значение по умолчанию
                             if (selected_value_table) {
-                                if (item[var1] === selected_value_table) {
-                                    option.selected = true;
+                                // Для транзакций и сервисов сравниваем с ID, для остального - с кодом
+                                if (window.location.pathname === '/transactions/create' 
+                                    || window.location.pathname === '/transactions'
+                                    || window.location.pathname.startsWith('/transactions/edit/')
+                                    || window.location.pathname === '/services/create'
+                                    || window.location.pathname === '/services'){
+                                    if (item[var2] === selected_value_table) {
+                                        option.selected = true;
+                                    }
+                                }else{
+                                    if (item[var1] === selected_value_table) {
+                                        option.selected = true;
+                                    }
                                 }
                             }
-
 
                             valueTableSelect.add(option);
 

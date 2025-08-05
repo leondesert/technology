@@ -920,7 +920,8 @@ class Transactions extends BaseController
         $method = $this->request->getPost('method');
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
-        $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
+        // Убираем лишнее преобразование, так как теперь в форме передается ID
+        // $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
 
         if ($acquiring === 'not_select') {
             $acquiring = null;
@@ -994,7 +995,8 @@ class Transactions extends BaseController
 
         $model = new TransactionsModel();
         $transaction = $model->find($id);
-        $transaction['value'] = $this->get_column($transaction['name'], $transaction['value'], '_id', '_code');
+        // Убираем преобразование, так как теперь в форме используется ID
+        // $transaction['value'] = $this->get_column($transaction['name'], $transaction['value'], '_id', '_code');
 
         $tableData = $this->gettable($transaction['name'], $user_id);
 
@@ -1040,7 +1042,8 @@ class Transactions extends BaseController
         $method = $this->request->getPost('method');
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
-        $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
+        // Убираем лишнее преобразование, так как теперь в форме передается ID
+        // $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
 
 
         if ($acquiring === 'not_select') {

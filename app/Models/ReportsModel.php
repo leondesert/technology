@@ -736,7 +736,16 @@ class ReportsModel extends Model
                 $model = new OprModel();
                 return $model;
                 break;
+            case 'pays':
+                $model = new PaysModel();
+                return $model;
+                break;
+            case 'share':
+                $model = new ShareModel();
+                return $model;
+                break;
         }
+        return null;
     }
 
 

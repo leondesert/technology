@@ -1363,6 +1363,7 @@ class BigExportController extends Controller
 
         $table_name = $this->is_table_name($params);
         $db = \Config\Database::connect();
+        $db->reconnect();
         $builder = $db->table('rewards');
         $results_rewards = $builder->get()->getResult();
         $c_name = $table_name.'_code';
@@ -1624,6 +1625,8 @@ class BigExportController extends Controller
 
     public function reportServices($params)
     {   
+        $db = \Config\Database::connect();
+        $db->reconnect();
         $TransactionsController = new Transactions();
         $ServicesModel = new ServicesModel();
 
@@ -1658,102 +1661,81 @@ class BigExportController extends Controller
 
     public function exception($t, $table_name, $results_table, $results_rewards, $method)
     {
-        $reward = null;
-        $c_name = $table_name.'_code';
-        $c_name2 = $table_name.'_id';
+        static $table_maps = [];
+        static $rewards_exact_map = null;
+        static $rewards_wildcard_list = null;
 
-        // по значению _code из таблицы ищет его _id
-        $key = array_search($t[$c_name], array_column($results_table, $c_name));
-        $id = $results_table[$key]->$c_name2;
+        $c_name = $table_name . '_code';
+        $c_name2 = $table_name . '_id';
 
-        
-        // 1. поиск по маршруту и перевозчику
-        if (!empty($results_rewards)) {
+        // Cache table results by code
+        if (!isset($table_maps[$table_name])) {
+            $table_maps[$table_name] = array_column($results_table, null, $c_name);
+        }
 
-            // 1.1 поиск конкретного маршрута
+        // Cache rewards results
+        if ($rewards_exact_map === null) {
+            $rewards_exact_map = [];
+            $rewards_wildcard_list = [];
             foreach ($results_rewards as $row) {
-                if ($row->method === $method && $row->type === 'citycodes' && $row->code === $t['citycodes'] && $row->name === $table_name && $row->value === $id) {
-
-                    // Установка вознаграждения
-                    $reward = $row->procent;
-                    break;
+                if (strpos($row->code, '*') === false) {
+                    $key = "{$row->method}|{$row->type}|{$row->code}|{$row->name}|{$row->value}";
+                    $rewards_exact_map[$key] = $row->procent;
+                } else {
+                    $rewards_wildcard_list[] = $row;
                 }
             }
+        }
 
-            // 1.2 поиск по частям маршрута
-            if ($reward === null && $t['citycodes'] !== null) {
-                // с начала и с конца
-                $prefixStartEnd = substr($t['citycodes'], 0, 3) . '/*/' . substr($t['citycodes'], -3);
-                // с начала
-                $prefixStart = substr($t['citycodes'], 0, 3) . '/*';
-                // с конца
-                $prefixEnd = '*/' . substr($t['citycodes'], -3);
+        if (!isset($table_maps[$table_name][$t[$c_name]])) {
+            return 0; // or handle error
+        }
 
-                // между
-                $prefixMiddle = null;
-                if (preg_match('/\/([A-Z]{3})\//', $t['citycodes'], $matches)) {
-                    $prefixMiddle = '*/'. $matches[1] . '/*';
-                }
+        $id = $table_maps[$table_name][$t[$c_name]]->$c_name2;
+        $reward = null;
 
+        // 1. Exact matches
+        // 1.1 citycodes
+        $key = "{$method}|citycodes|{$t['citycodes']}|{$table_name}|{$id}";
+        if (isset($rewards_exact_map[$key])) {
+            $reward = $rewards_exact_map[$key];
+        }
 
+        // 1.3 carrier
+        if ($reward === null && $t['carrier'] !== null) {
+            $key = "{$method}|carrier|{$t['carrier']}|{$table_name}|{$id}";
+            if (isset($rewards_exact_map[$key])) {
+                $reward = $rewards_exact_map[$key];
+            }
+        }
 
-                // по умолчанию разрешаем поиск по началу и концу
-                $enableSearch = true;
+        // 2. Wildcard matches (still needs a loop, but on a smaller pre-filtered list)
+        if ($reward === null && $t['citycodes'] !== null) {
+            $prefixStartEnd = substr($t['citycodes'], 0, 3) . '/*/' . substr($t['citycodes'], -3);
+            $prefixStart = substr($t['citycodes'], 0, 3) . '/*';
+            $prefixEnd = '*/' . substr($t['citycodes'], -3);
+            $prefixMiddle = null;
+            if (preg_match('/\/([A-Z]{3})\//', $t['citycodes'], $matches)) {
+                $prefixMiddle = '*/'. $matches[1] . '/*';
+            }
+            $enableSearch = substr_count($t['citycodes'], '/') < 2;
 
-                // Проверка на наличие двух слэшей в строке
-                if (substr_count($t['citycodes'], '/') >= 2) {
-                    // если два или более слэша, то отключаем поиск по началу и концу
-                    $enableSearch = false;
-                }
-
-
-                foreach ($results_rewards as $row) {
-                    if ($row->method === $method 
-                        && $row->type === 'citycodes' 
-                        && ($row->code === $prefixStartEnd
-                            || ($enableSearch && ($row->code === $prefixStart || $row->code === $prefixEnd))
-                            || ($prefixMiddle && $row->code === $prefixMiddle))
-                        && $row->name === $table_name 
-                        && $row->value === $id) {
-
-                        // Установка вознаграждения
+            foreach ($rewards_wildcard_list as $row) {
+                if ($row->method === $method && $row->type === 'citycodes' && $row->name === $table_name && $row->value === $id) {
+                    if ($row->code === $prefixStartEnd || ($enableSearch && ($row->code === $prefixStart || $row->code === $prefixEnd)) || ($prefixMiddle && $row->code === $prefixMiddle)) {
                         $reward = $row->procent;
                         break;
                     }
                 }
             }
-
-            // 1.3 поиск конкретного перевозчика
-            if ($reward === null && $t['carrier'] !== null) {
-                foreach ($results_rewards as $row) {
-                    if ($row->method === $method && $row->type === 'carrier' && $row->code === $t['carrier'] && $row->name === $table_name && $row->value === $id) {
-
-                        // Установка вознаграждения
-                        $reward = $row->procent;
-                        break;
-                    }
-                }
-            }
-
-
         }
 
-
-
-        // 2. Если не найдено, установим базовую
-        if (!empty($results_table)) {
-
-            // Установка вознаграждения
-            if ($reward === null) {
-                $reward = $results_table[$key]->$method;
-            }
+        // 3. Default value from table
+        if ($reward === null) {
+            $reward = $table_maps[$table_name][$t[$c_name]]->$method;
         }
 
-        if (empty($reward)) {
-            $reward = 0;
-        }
-
-        return $reward;
+        return $reward ?? 0;
     }
 
     public function reportGetTransactions($params, $table_name)
@@ -1765,50 +1747,77 @@ class BigExportController extends Controller
         $model = new UserModel();
         $user_id = $params['user_login'];
         $user = $model->find($user_id);
-        $colum_name = $user['filter'].'_id';
-        $ids = $user[$colum_name];
-        $ids = explode(',', $ids);
-
         
+        // Initialize $ids_to_filter based on the primary table_name passed to the function
+        $primary_filter_col_name = $table_name . '_id';
+        $ids_to_filter = explode(',', $user[$primary_filter_col_name]);
+
+        // Flag to indicate if a specific 'Код раздачи' filter was found and applied
+        $share_code_filter_applied = false;
 
         if (isset($params['searchBuilder']['criteria'])) {
             foreach ($params['searchBuilder']['criteria'] as $criteria) {
                 if (!empty($criteria['value'][0])) {
-                    // фильтр по дате
+                    // Filter by date
                     if ($criteria['condition'] === '=' && $criteria['data'] === 'Дата формирования') {
                         $builder->where('payment_date', $criteria['value'][0]);
-                    }elseif ($criteria['condition'] === 'between' && $criteria['data'] === 'Дата формирования') {
+                    } elseif ($criteria['condition'] === 'between' && $criteria['data'] === 'Дата формирования') {
                         $builder->where('payment_date' . " >= ", $criteria['value'][0]);
                         $builder->where('payment_date' . " <= ", $criteria['value'][1]);
-                    } elseif ($criteria['data'] === 'Код агентства' || $criteria['data'] === 'Код ППР' || $criteria['data'] === 'Код пульта' || $criteria['data'] === 'Код оператора') {
-
-                        // Фильтр по 4 параметрам констуктор table_name выше известен
-                        $c_name1 = $table_name."_id";
-                        $c_name2 = $table_name."_code";
-                        $ids = explode(',', $user[$c_name1]);
-                        $model = $this->getModal($table_name);
-
-                        if (!empty($criteria['value'][0])) {
-                            $result = $model->where($c_name2, $criteria['value'][0])->first();
-                            $builder->where('name', $table_name)->where('value', $result[$c_name1]);
+                    } 
+                    // Handle specific 4-param filters including 'Код раздачи'
+                    elseif (in_array($criteria['data'], ['Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи'])) {
+                        $current_criteria_table_name = '';
+                        switch ($criteria['data']) {
+                            case 'Код агентства': $current_criteria_table_name = 'agency'; break;
+                            case 'Код ППР': $current_criteria_table_name = 'stamp'; break;
+                            case 'Код пульта': $current_criteria_table_name = 'tap'; break;
+                            case 'Код оператора': $current_criteria_table_name = 'opr'; break;
+                            case 'Код раздачи': $current_criteria_table_name = 'share'; break;
                         }
 
-
-                    } elseif ($criteria['data'] === 'Валюта билета'){
-
+                        // If the current criteria is for 'Код раздачи', override $ids_to_filter
+                        if ($current_criteria_table_name === 'share') {
+                            $shareModel = new ShareModel();
+                            $share = $shareModel->where('share_code', $criteria['value'][0])->first();
+                            if ($share) {
+                                $ids_to_filter = [$share['share_id']]; // Исправлено: было $share->share_id
+                            } else {
+                                $ids_to_filter = []; // No matching share code, so no transactions
+                            }
+                            $share_code_filter_applied = true; // Mark that share_code filter was handled
+                        } else {
+                            // For other 4-param filters, apply as a direct where clause on 'name' and 'value'
+                            $modal = $this->getModal($current_criteria_table_name);
+                            $result = $modal->where($current_criteria_table_name . '_code', $criteria['value'][0])->first();
+                            if ($result) {
+                                $builder->where('name', $current_criteria_table_name)->where('value', $result->{$current_criteria_table_name . '_id'});
+                            } else {
+                                // If a secondary filter has no match, ensure no results are returned.
+                                $builder->where('1', '0'); 
+                            }
+                        }
+                    } 
+                    // Filter by currency
+                    elseif ($criteria['data'] === 'Валюта билета'){
                         $builder->where('currency', $criteria['value'][0]);
-
                     }  
-                    
                 }
-                
             }
         }
 
-
-        $builder->select('payment_date, receipt_number, amount, currency, note, name, value, method')->where('name', $table_name)->whereIn('value', $ids);
+        // Apply the main ID filter based on $ids_to_filter
+        // This ensures that if a specific 'Код раздачи' was selected, only its ID is used.
+        // If no specific 'Код раздачи' was selected, it uses the user's default filter IDs.
+        if (!empty($ids_to_filter)) {
+            $builder->where('name', $table_name)->whereIn('value', $ids_to_filter);
+        } else {
+            // If $ids_to_filter is empty (e.g., no matching share code found or no default IDs), ensure no results are returned.
+            $builder->where('1', '0');
+        }
+        
+        $builder->select('payment_date, receipt_number, amount, currency, note, name, value, method');
         $transactions = $builder->get()->getResultArray();
-
 
         return $transactions;
     }
@@ -2069,6 +2078,8 @@ class BigExportController extends Controller
 
     public function for_summaryTable($params)
     {
+        $db = \Config\Database::connect();
+        $db->reconnect();
         // ============= задача ================== //
 
         // 2024-09-06 - 2024-09-10
