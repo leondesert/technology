@@ -1745,76 +1745,84 @@ class BigExportController extends Controller
         $db = \Config\Database::connect();
         $builder = $db->table('transactions');
 
-        $model = new UserModel();
-        $user_id = $params['user_login'];
-        $user = $model->find($user_id);
-        
-        // Initialize $ids_to_filter based on the primary table_name passed to the function
-        $primary_filter_col_name = $table_name . '_id';
-        $ids_to_filter = explode(',', $user[$primary_filter_col_name]);
-
-        // Flag to indicate if a specific 'Код раздачи' filter was found and applied
-        $share_code_filter_applied = false;
-
+        // Сначала применяем фильтры по дате и валюте, так как они применяются всегда
         if (isset($params['searchBuilder']['criteria'])) {
             foreach ($params['searchBuilder']['criteria'] as $criteria) {
                 if (!empty($criteria['value'][0])) {
-                    // Filter by date
                     if ($criteria['condition'] === '=' && $criteria['data'] === 'Дата формирования') {
                         $builder->where('payment_date', $criteria['value'][0]);
                     } elseif ($criteria['condition'] === 'between' && $criteria['data'] === 'Дата формирования') {
-                        $builder->where('payment_date' . " >= ", $criteria['value'][0]);
-                        $builder->where('payment_date' . " <= ", $criteria['value'][1]);
-                    } 
-                    // Handle specific 4-param filters including 'Код раздачи'
-                    elseif (in_array($criteria['data'], ['Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи'])) {
-                        $current_criteria_table_name = '';
-                        switch ($criteria['data']) {
-                            case 'Код агентства': $current_criteria_table_name = 'agency'; break;
-                            case 'Код ППР': $current_criteria_table_name = 'stamp'; break;
-                            case 'Код пульта': $current_criteria_table_name = 'tap'; break;
-                            case 'Код оператора': $current_criteria_table_name = 'opr'; break;
-                            case 'Код раздачи': $current_criteria_table_name = 'share'; break;
-                        }
-
-                        // If the current criteria is for 'Код раздачи', override $ids_to_filter
-                        if ($current_criteria_table_name === 'share') {
-                            $shareModel = new ShareModel();
-                            $share = $shareModel->where('share_code', $criteria['value'][0])->first();
-                            if ($share) {
-                                $ids_to_filter = [$share['share_id']]; // Исправлено: было $share->share_id
-                            } else {
-                                $ids_to_filter = []; // No matching share code, so no transactions
-                            }
-                            $share_code_filter_applied = true; // Mark that share_code filter was handled
-                        } else {
-                            // For other 4-param filters, apply as a direct where clause on 'name' and 'value'
-                            $modal = $this->getModal($current_criteria_table_name);
-                            $result = $modal->where($current_criteria_table_name . '_code', $criteria['value'][0])->first();
-                            if ($result) {
-                                $builder->where('name', $current_criteria_table_name)->where('value', $result->{$current_criteria_table_name . '_id'});
-                            } else {
-                                // If a secondary filter has no match, ensure no results are returned.
-                                $builder->where('1', '0'); 
-                            }
-                        }
-                    } 
-                    // Filter by currency
-                    elseif ($criteria['data'] === 'Валюта билета'){
+                        $builder->where('payment_date >=', $criteria['value'][0]);
+                        $builder->where('payment_date <=', $criteria['value'][1]);
+                    } elseif ($criteria['data'] === 'Валюта билета') {
                         $builder->where('currency', $criteria['value'][0]);
-                    }  
+                    }
                 }
             }
         }
 
-        // Apply the main ID filter based on $ids_to_filter
-        // This ensures that if a specific 'Код раздачи' was selected, only its ID is used.
-        // If no specific 'Код раздачи' was selected, it uses the user's default filter IDs.
-        if (!empty($ids_to_filter)) {
-            $builder->where('name', $table_name)->whereIn('value', $ids_to_filter);
+        // Собираем все 4-параметрические фильтры из конструктора
+        $four_param_filters = [];
+        $has_four_param_filter = false;
+        if (isset($params['searchBuilder']['criteria'])) {
+            foreach ($params['searchBuilder']['criteria'] as $criteria) {
+                if (!empty($criteria['value'][0]) && in_array($criteria['data'], ['Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи'])) {
+                    $has_four_param_filter = true; // Устанавливаем флаг, что такой фильтр есть
+                    $current_criteria_table_name = '';
+                    switch ($criteria['data']) {
+                        case 'Код агентства': $current_criteria_table_name = 'agency'; break;
+                        case 'Код ППР': $current_criteria_table_name = 'stamp'; break;
+                        case 'Код пульта': $current_criteria_table_name = 'tap'; break;
+                        case 'Код оператора': $current_criteria_table_name = 'opr'; break;
+                        case 'Код раздачи': $current_criteria_table_name = 'share'; break;
+                    }
+
+                    if ($current_criteria_table_name) {
+                        $modal = $this->getModal($current_criteria_table_name);
+                        $result = $modal->where($current_criteria_table_name . '_code', $criteria['value'][0])->first();
+                        if ($result) {
+                            $four_param_filters[] = [
+                                'name' => $current_criteria_table_name,
+                                'value' => $result[$current_criteria_table_name . '_id']
+                            ];
+                        } else {
+                            $four_param_filters = []; 
+                            $builder->where('1', '0'); 
+                            break; 
+                        }
+                    }
+                }
+            }
+        }
+
+        // Применяем 4-параметрические фильтры
+        if ($has_four_param_filter) {
+            if (!empty($four_param_filters)) {
+                $builder->groupStart();
+                foreach ($four_param_filters as $filter) {
+                    $builder->orGroupStart();
+                    $builder->where('name', $filter['name']);
+                    $builder->where('value', $filter['value']);
+                    $builder->groupEnd();
+                }
+                $builder->groupEnd();
+            } else {
+                // Если был фильтр, но ничего не найдено (например, код не существует)
+                $builder->where('1', '0');
+            }
         } else {
-            // If $ids_to_filter is empty (e.g., no matching share code found or no default IDs), ensure no results are returned.
-            $builder->where('1', '0');
+            // Если фильтров в конструкторе нет, используем права доступа пользователя по умолчанию
+            $model = new UserModel();
+            $user_id = $params['user_login'];
+            $user = $model->find($user_id);
+            $primary_filter_col_name = $table_name . '_id';
+
+            if (isset($user[$primary_filter_col_name]) && !empty($user[$primary_filter_col_name])) {
+                $ids_to_filter = explode(',', $user[$primary_filter_col_name]);
+                $builder->where('name', $table_name)->whereIn('value', $ids_to_filter);
+            } else {
+                $builder->where('1', '0');
+            }
         }
         
         $builder->select('payment_date, receipt_number, amount, currency, note, name, value, method');

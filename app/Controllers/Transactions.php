@@ -93,88 +93,56 @@ class Transactions extends BaseController
 
     public function getModelFilter($user_id, $daterange, $name_table, $value_table, $currency)
     {
+        $userModel = new UserModel();
+        $user = $userModel->find($user_id);
+        $agency_ids = !empty($user['agency_id']) ? explode(',', $user['agency_id']) : [];
+        $stamp_ids  = !empty($user['stamp_id']) ? explode(',', $user['stamp_id']) : [];
+        $tap_ids    = !empty($user['tap_id']) ? explode(',', $user['tap_id']) : [];
+        $opr_ids    = !empty($user['opr_id']) ? explode(',', $user['opr_id']) : [];
+        $share_ids  = !empty($user['share_id']) ? explode(',', $user['share_id']) : [];
 
-        $model = new UserModel();
-        $user = $model->find($user_id);
-        $agency_ids = explode(',', $user['agency_id']);
-        $stamp_ids = explode(',', $user['stamp_id']);
-        $tap_ids = explode(',', $user['tap_id']);
-        $opr_ids = explode(',', $user['opr_id']);
-        $share_ids = explode(',', $user['share_id'] ?? '');
         $model = new TransactionsModel();
 
-        // Фильтрация по полям name и value
-        $model->groupStart()
-                    ->orGroupStart()
-                        ->where('name', 'agency')
-                        ->whereIn('value', $agency_ids)
-                    ->groupEnd()
-                    ->orGroupStart()
-                        ->where('name', 'stamp')
-                        ->whereIn('value', $stamp_ids)
-                    ->groupEnd()
-                    ->orGroupStart()
-                        ->where('name', 'tap')
-                        ->whereIn('value', $tap_ids)
-                    ->groupEnd()
-                    ->orGroupStart()
-                        ->where('name', 'opr')
-                        ->whereIn('value', $opr_ids)
-                    ->groupEnd()
-                    ->orGroupStart() // Добавляем группу для share
-                        ->where('name', 'share')
-                        ->whereIn('value', $share_ids)
-                    ->groupEnd()
-                ->groupEnd();
-
-        
-
-
-        // #1 Фильтруем по диапазону дат
+        // #1 Date filter
         if (!empty($daterange)) {
-            
             $dates = explode(' / ', $daterange);
-            
-            // Получаем начальную и конечную дату из диапазона
             $start_date = date('Y-m-d', strtotime($dates[0]));
             $end_date   = date('Y-m-d', strtotime($dates[1]));
-
-            // Добавляем условия фильтрации по дате
-            $model->where('payment_date' . " >= ", $start_date);
-            $model->where('payment_date' . " <= ", $end_date);
-
+            $model->where('payment_date >=', $start_date);
+            $model->where('payment_date <=', $end_date);
         }
 
-
-        // #2 Фильтруем по Организации
-        if (!empty($name_table)) {
-
-            if ($name_table !== "all") {
-
-                if ($value_table !== "all") {
-
-                    // Убираем лишнее преобразование, так как теперь в параметрах передается ID
-                    // $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
-                    
-                    $model->where('name', $name_table)
-                          ->where('value', $value_table);
-                }else{
-
-                    $model->where('name', $name_table);
-                }
-                
-
-            }
-
-
-        }
-
-
-        // #3 Фильтруем по валюте
+        // #2 Currency filter
         if (!empty($currency)) {
             $model->where('currency', $currency);
         }
 
+        // #3 Organization filter from UI
+        if (!empty($name_table) && $name_table !== 'all') {
+            if (!empty($value_table) && $value_table !== 'all') {
+                // A specific code was selected. Convert code to ID for query.
+                $id = $this->get_column($name_table, $value_table, '_code', '_id');
+                if ($id) {
+                    $model->where('name', $name_table)->where('value', $id);
+                } else {
+                    // Invalid code provided, so return no results.
+                    return $model->where('1', '0');
+                }
+            } else {
+                // "All" of a specific type (e.g., all shares) was selected.
+                // We will filter by user permissions for this type below.
+                $model->where('name', $name_table);
+            }
+        }
+
+        // #4 Apply user permissions
+        $model->groupStart();
+        if (!empty($agency_ids)) { $model->orGroupStart()->where('name', 'agency')->whereIn('value', $agency_ids)->groupEnd(); }
+        if (!empty($stamp_ids)) { $model->orGroupStart()->where('name', 'stamp')->whereIn('value', $stamp_ids)->groupEnd(); }
+        if (!empty($tap_ids)) { $model->orGroupStart()->where('name', 'tap')->whereIn('value', $tap_ids)->groupEnd(); }
+        if (!empty($opr_ids)) { $model->orGroupStart()->where('name', 'opr')->whereIn('value', $opr_ids)->groupEnd(); }
+        if (!empty($share_ids)) { $model->orGroupStart()->where('name', 'share')->whereIn('value', $share_ids)->groupEnd(); }
+        $model->groupEnd();
 
         return $model;
     }
