@@ -1221,10 +1221,13 @@ class BigExportController extends Controller
 
             // Применение формата ячейки для столбца "formula"
             $sheet->getStyle('D'.$row)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
-            $sheet->getStyle('D'.$row)->getAlignment()->setHorizontal('right');
+            $sheet->getStyle('D'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+            // Применение формата ячейки для столбца "name"
+            $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
             // Применение формата ячейки для столбца "number"
-            $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('left');
+            $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             
 
             $row++;
@@ -2589,6 +2592,11 @@ class BigExportController extends Controller
 
         // Применяем форматирование к нужным колонкам
         if ($lastRow >= 2 && !empty($filteredHeaders)) {
+            // Устанавливаем выравнивание по левому краю для всех ячеек данных по умолчанию
+            $sheet->getStyle('A2:' . $highestColumn . $lastRow)
+                  ->getAlignment()
+                  ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
             $columnsToFormat = [
                 'Штраф' => NumberFormat::FORMAT_NUMBER_00,
                 'Сумма штрафа' => NumberFormat::FORMAT_NUMBER_00,
@@ -2610,14 +2618,14 @@ class BigExportController extends Controller
             foreach ($filteredHeaders as $colIndex => $headerName) {
                 if (isset($columnsToFormat[$headerName])) {
                     $columnLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-                    $sheet->getStyle($columnLetter . '2:' . $columnLetter . $lastRow)
-                          ->getNumberFormat()
-                          ->setFormatCode($columnsToFormat[$headerName]);
+                    $style = $sheet->getStyle($columnLetter . '2:' . $columnLetter . $lastRow);
+                    $style->getNumberFormat()->setFormatCode($columnsToFormat[$headerName]);
+                    $style->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                 } elseif (in_array($headerName, ['Номер билета', 'Номер старшего билета', 'Номер основного билета'])) {
                     $columnLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-                    $sheet->getStyle($columnLetter . '1:' . $columnLetter . $lastRow) // Применяем формат ко всему столбцу, включая заголовок, если нужно, или с '2' для данных
+                    $sheet->getStyle($columnLetter . '1:' . $columnLetter . $lastRow)
                           ->getNumberFormat()
-                          ->setFormatCode('0'); // Устанавливаем формат "целое число"
+                          ->setFormatCode('0');
                 }
             }
         }
