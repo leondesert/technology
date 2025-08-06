@@ -111,10 +111,7 @@ class ServicesController extends BaseController
         $filters = $this->request->getPost();
 
 
-        // Проверяем, существует ли 'value_table' перед использованием
-        if (($filters['value_table'] ?? 'all') !== "all") {
-            $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
-        }
+        // Убираем лишнее преобразование, теперь value_table всегда ID
         
 
         // Инициализация модели
@@ -227,7 +224,8 @@ class ServicesController extends BaseController
         $method = $this->request->getPost('method');
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
-        $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
+        // Убираем лишнее преобразование, так как теперь в форме передается ID
+        // $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
 
 
         if ($acquiring === 'not_select') {
@@ -296,7 +294,8 @@ class ServicesController extends BaseController
 
         $model = new ServicesModel();
         $services = $model->find($id);
-        $services['value'] = $TransactionsController->get_column($services['name'], $services['value'], '_id', '_code');
+        // Убираем преобразование, так как теперь в форме используется ID
+        // $services['value'] = $TransactionsController->get_column($services['name'], $services['value'], '_id', '_code');
 
 
         $currencies = ['TJS', 'RUB'];
@@ -339,7 +338,8 @@ class ServicesController extends BaseController
         $method = $this->request->getPost('method');
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
-        $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
+        // Убираем лишнее преобразование, так как теперь в форме передается ID
+        // $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
 
         if ($acquiring === 'not_select') {
             $acquiring = null;

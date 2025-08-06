@@ -153,8 +153,8 @@ class Transactions extends BaseController
 
                 if ($value_table !== "all") {
 
-                    // получить id по code
-                    $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
+                    // Убираем лишнее преобразование, так как теперь в параметрах передается ID
+                    // $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
                     
                     $model->where('name', $name_table)
                           ->where('value', $value_table);

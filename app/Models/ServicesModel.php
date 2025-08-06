@@ -106,26 +106,39 @@ class ServicesModel extends Model
         $builder->where('doc_date' . ' >=', $filters['startDate']);
         $builder->where('doc_date' . ' <=', ($filters['endDate'] ?? null));
         $builder->where('currency', ($filters['currency'] ?? null));
-        $builder->where('name', ($filters['name_table'] ?? 'all'));
 
+
+        $name_table = $filters['name_table'] ?? 'all';
+        if ($name_table !== 'all') {
+            $builder->where('name', $name_table);
+        }
 
         if (($filters['value_table'] ?? 'all') !== "all") {
-
             $builder->where('value', $filters['value_table']);
-
         } else {
-
-
             // если value_table = all
             $UserModel = new UserModel();
             $user_id = ($filters['user_login'] ?? session()->get('user_id'));
             $user = $UserModel->find($user_id);
-            $colum_name = $user['filter'].'_id';
-            $ids = $user[$colum_name];
-            $ids = explode(',', $ids);
 
-            $builder->whereIn('value', $ids);
+            $name_for_ids = $name_table;
+            if ($name_for_ids === 'all') {
+                $name_for_ids = $user['filter'] ?? null;
+            }
 
+            if ($name_for_ids) {
+                if ($name_table === 'all') {
+                    $builder->where('name', $name_for_ids);
+                }
+                
+                $id_column = $name_for_ids . '_id';
+                if (isset($user[$id_column]) && !empty($user[$id_column])) {
+                    $ids = explode(',', $user[$id_column]);
+                    $builder->whereIn('value', $ids);
+                } else {
+                    $builder->where('1=0');
+                }
+            }
         }
 
 
@@ -191,10 +204,16 @@ class ServicesModel extends Model
         $builder->where('doc_date' . ' <=', $params['endDate']);
         $builder->where('currency', ($params['currency'] ?? null));
         $builder->where('name', ($params['name_table'] ?? ($user['filter'] ?? 'all'))); // Фильтруем по name, если указано, или по user['filter']
-        if (!empty($ids)) { $builder->whereIn('value', $ids); } else if ($name_table_for_ids) { $builder->where('1=0'); /* Если есть тип, но нет ID, не показываем ничего для этого типа */ }
 
+        // Если указан конкретный value_table, используем его вместо фильтра пользователя
         if (($params['value_table'] ?? 'all') !== "all") {
             $builder->where('value', $params['value_table']);
+        } else if (!empty($ids)) {
+            // Если value_table не указан, используем фильтр пользователя
+            $builder->whereIn('value', $ids);
+        } else if ($name_table_for_ids) {
+            // Если есть тип, но нет ID, не показываем ничего для этого типа
+            $builder->where('1=0');
         }
 
 

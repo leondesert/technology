@@ -93,7 +93,7 @@ $(document).ready(function() {
 
     var table = $('#transactions').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
         },
         columns: [
             { "data": "creation_date" },
@@ -135,7 +135,7 @@ $(document).ready(function() {
 
     var downtable = $('#trans_downtable').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
         },
         columns: [
             { "data": "name" },

@@ -188,7 +188,7 @@ function hideLoading() {
     // таблица
     var table = $('#flightload').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
           "processing": '<div class="custom-loader"><div class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div></div></div>',
         },
         pagingType: 'simple',

@@ -24,7 +24,7 @@ if (window.location.pathname === '/logs') {
     // таблица
     var table = $('#logs').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
         },
         ajax: {
                 url: '/logs/getData',

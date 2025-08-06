@@ -410,7 +410,7 @@ $(document).ready(function() {
 
 	var table = new DataTable('#tickets', {
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
       },
         ajax: {
                 url: '..//php/tickets.php',

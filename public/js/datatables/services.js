@@ -40,7 +40,7 @@ $(document).ready(function() {
 
     var table = $('#services').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
           "processing": '',
         },
         pagingType: 'simple',
@@ -121,7 +121,7 @@ $(document).ready(function() {
 
     var downtable = $('#services_downtable').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
         },
         columns: [
             { "data": "name" },

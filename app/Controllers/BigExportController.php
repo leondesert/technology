@@ -1631,9 +1631,10 @@ class BigExportController extends Controller
         $ServicesModel = new ServicesModel();
 
 
-        if ($params['value_table'] !== "all") {
-            $params['value_table'] = $TransactionsController->get_column($params['name_table'], $params['value_table'], '_code', '_id');
-        }
+        // Убираем лишнее преобразование, так как теперь в параметрах передается ID
+        // if ($params['value_table'] !== "all") {
+        //     $params['value_table'] = $TransactionsController->get_column($params['name_table'], $params['value_table'], '_code', '_id');
+        // }
         
         $serviceData = $ServicesModel->getDataForReport($params);
 

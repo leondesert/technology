@@ -87,7 +87,7 @@ if (window.location.pathname === '/pays') {
     // таблица
     var table = $('#pays').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
           
         },
         pagingType: 'simple',
@@ -323,7 +323,7 @@ if (window.location.pathname === '/pays') {
 
     var downtable = $('#pays_downtable').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
         },
         columns: [
             { "data": "name_payment" },
@@ -383,7 +383,7 @@ if (window.location.pathname === '/pays') {
 
     var downtable2 = $('#pays_downtable2').DataTable({
         language: {
-          url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ru.json',
+          url: '/js/datatables/i18n/ru.json',
         },
         columns: [
             
