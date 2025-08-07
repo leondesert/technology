@@ -431,7 +431,12 @@ class ServicesController extends BaseController
 
         // Проверяем, существует ли 'value_table' перед использованием
         if (($filters['value_table'] ?? 'all') !== "all") {
-            $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
+            // Если name_table - 'share', то value_table уже должен быть share_id
+            if (($filters['name_table'] ?? 'all') === 'share') {
+                // Ничего не делаем, value_table уже корректный ID
+            } else {
+                $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
+            }
         }
 
 
