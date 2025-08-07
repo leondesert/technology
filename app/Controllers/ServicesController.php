@@ -430,14 +430,11 @@ class ServicesController extends BaseController
         
 
         // Проверяем, существует ли 'value_table' перед использованием
-        if (($filters['value_table'] ?? 'all') !== "all") {
-            // Если name_table - 'share', то value_table уже должен быть share_id
-            if (($filters['name_table'] ?? 'all') === 'share') {
-                // Ничего не делаем, value_table уже корректный ID
-            } else {
-                $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
-            }
-        }
+        // Если value_table не "all", то предполагается, что он уже является ID.
+        // Преобразование из _code в _id больше не требуется, так как фронтенд передает ID.
+        // if (($filters['value_table'] ?? 'all') !== "all") {
+        //     $filters['value_table'] = $TransactionsController->get_column($filters['name_table'], $filters['value_table'], '_code', '_id');
+        // }
 
 
         $results = $ServicesModel->getDataForDowntable($filters);
