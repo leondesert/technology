@@ -74,18 +74,18 @@ class Transactions extends BaseController
 
     public function get_column($name_table, $value_table, $c_name1, $c_name2)
     {
-        
+        $c_name1_col = $name_table.$c_name1;
+        $c_name2_col = $name_table.$c_name2;
 
-        $c_name1 = $name_table.$c_name1; // поиск
-        $c_name2 = $name_table.$c_name2; // получить
-
-        $BigExportController = new BigExportController();
         $model = $this->getModelByName($name_table);
-        $result = $model->select($c_name2)->where($c_name1, $value_table)->asArray()->first();
+        if (!$model) {
+            return false;
+        }
 
+        $result = $model->select($c_name2_col)->where($c_name1_col, $value_table)->asArray()->first();
 
-        if ($result) {
-            return $result[$c_name2];
+        if ($result && isset($result[$c_name2_col]) && !empty(trim($result[$c_name2_col]))) {
+            return $result[$c_name2_col];
         } else {
             return false;
         }   
@@ -95,11 +95,13 @@ class Transactions extends BaseController
     {
         $userModel = new UserModel();
         $user = $userModel->find($user_id);
-        $agency_ids = !empty($user['agency_id']) ? explode(',', $user['agency_id']) : [];
-        $stamp_ids  = !empty($user['stamp_id']) ? explode(',', $user['stamp_id']) : [];
-        $tap_ids    = !empty($user['tap_id']) ? explode(',', $user['tap_id']) : [];
-        $opr_ids    = !empty($user['opr_id']) ? explode(',', $user['opr_id']) : [];
-        $share_ids  = !empty($user['share_id']) ? explode(',', $user['share_id']) : [];
+        $permissions = [
+            'agency' => !empty($user['agency_id']) ? explode(',', $user['agency_id']) : [],
+            'stamp'  => !empty($user['stamp_id']) ? explode(',', $user['stamp_id']) : [],
+            'tap'    => !empty($user['tap_id']) ? explode(',', $user['tap_id']) : [],
+            'opr'    => !empty($user['opr_id']) ? explode(',', $user['opr_id']) : [],
+            'share'  => !empty($user['share_id']) ? explode(',', $user['share_id']) : [],
+        ];
 
         $model = new TransactionsModel();
 
@@ -117,32 +119,41 @@ class Transactions extends BaseController
             $model->where('currency', $currency);
         }
 
-        // #3 Organization filter from UI
+        // #3 & #4 Combined Organization and Permission filter
         if (!empty($name_table) && $name_table !== 'all') {
+            $model->where('name', $name_table);
+            $allowed_ids = $permissions[$name_table] ?? [];
+
             if (!empty($value_table) && $value_table !== 'all') {
-                // A specific code was selected. Convert code to ID for query.
-                $id = $this->get_column($name_table, $value_table, '_code', '_id');
-                if ($id) {
-                    $model->where('name', $name_table)->where('value', $id);
+                // The incoming $value_table is the ID itself (e.g., '4')
+                $id = $value_table;
+                
+                if (in_array($id, $allowed_ids)) {
+                    $model->where('value', $id);
                 } else {
-                    // Invalid code provided, so return no results.
-                    return $model->where('1', '0');
+                    $model->where('1 = 0'); // No permission for this ID
                 }
             } else {
-                // "All" of a specific type (e.g., all shares) was selected.
-                // We will filter by user permissions for this type below.
-                $model->where('name', $name_table);
+                // "All" of a specific type is selected
+                if (!empty($allowed_ids)) {
+                    $model->whereIn('value', $allowed_ids);
+                } else {
+                    $model->where('1 = 0'); // No permissions for this type
+                }
             }
+        } else {
+            // No specific organization type is selected ("All Organizations")
+            $model->groupStart();
+            foreach ($permissions as $name => $ids) {
+                if (!empty($ids)) {
+                    $model->orGroupStart()
+                          ->where('name', $name)
+                          ->whereIn('value', $ids)
+                          ->groupEnd();
+                }
+            }
+            $model->groupEnd();
         }
-
-        // #4 Apply user permissions
-        $model->groupStart();
-        if (!empty($agency_ids)) { $model->orGroupStart()->where('name', 'agency')->whereIn('value', $agency_ids)->groupEnd(); }
-        if (!empty($stamp_ids)) { $model->orGroupStart()->where('name', 'stamp')->whereIn('value', $stamp_ids)->groupEnd(); }
-        if (!empty($tap_ids)) { $model->orGroupStart()->where('name', 'tap')->whereIn('value', $tap_ids)->groupEnd(); }
-        if (!empty($opr_ids)) { $model->orGroupStart()->where('name', 'opr')->whereIn('value', $opr_ids)->groupEnd(); }
-        if (!empty($share_ids)) { $model->orGroupStart()->where('name', 'share')->whereIn('value', $share_ids)->groupEnd(); }
-        $model->groupEnd();
 
         return $model;
     }
@@ -200,34 +211,39 @@ class Transactions extends BaseController
         return $transactions;
     }
 
-    public function upTable($user_id, $daterange, $name_table, $value_table, $currency)
+    public function upTable($user_id, $daterange, $name_table, $value_table, $currency, $transform = true)
     {
-
-        $PaysController = new PaysController();
-
         // фильтрация   
         $model = $this->getModelFilter($user_id, $daterange, $name_table, $value_table, $currency);
         $transactions = $model->findAll();
 
-        // Преобразование удобочитаемый формат некоторых столбцов
-        $transactions = $this->changeColumsNames($transactions);
-
-        foreach($transactions as &$item){
-
-            // изменить название Эквайринг
-            $item['acquiring'] = $PaysController->get_name_acq($item['acquiring']);
-
-            // ========= установить рядом (название)
-
-            $name = $this->get_column($name_table, $item['value'], '_code', '_name');
-
-            if ($name) {
-                $item['value'] = $item['value'] . ' ('.$name.')';
-            }
-            
-
+        if ($transform) {
+            // Преобразование удобочитаемый формат некоторых столбцов
+            $transactions = $this->changeColumsNames($transactions);
+            $transactions = $this->appendValueNames($transactions, $name_table);
         }
 
+        return $transactions;
+    }
+
+    public function appendValueNames($transactions, $name_table)
+    {
+        $PaysController = new PaysController();
+        foreach($transactions as &$item){
+            // изменить название Эквайринг
+            if (isset($item['acquiring'])) {
+                $item['acquiring'] = $PaysController->get_name_acq($item['acquiring']);
+            }
+
+            // ========= установить рядом (название)
+            if ($name_table && $name_table !== 'all' && isset($item['value'])) {
+                 $name = $this->get_column($name_table, $item['value'], '_code', '_name');
+
+                if ($name) {
+                    $item['value'] = $item['value'] . ' ('.$name.')';
+                }
+            }
+        }
         return $transactions;
     }
 
@@ -288,8 +304,6 @@ class Transactions extends BaseController
         $value_table = $this->request->getVar('value_table');
         $currency = $this->request->getVar('currency');
         $daterange = $startDate.' / '.$endDate;
-        
-
         
 
 
@@ -432,8 +446,6 @@ class Transactions extends BaseController
         }
 
         $sheet->setAutoFilter("A1:". $c . ($rowNumber - 1));
-
-        
         
 
 
@@ -630,12 +642,11 @@ class Transactions extends BaseController
         $startDate = $this->request->getPost('startDate');
         $endDate = $this->request->getPost('endDate');
         $daterange = $startDate." / ".$endDate;
-        // $value = explode(':', $value_table);
        
-
         // Получить данные для верхней таблицы
-        $transactions = $this->upTable($user_id, $daterange, $name_table, $value_table, $currency);
-        
+        $raw_transactions = $this->upTable($user_id, $daterange, $name_table, $value_table, $currency, false); // Get raw data first
+        $transactions = $this->changeColumsNames($raw_transactions);
+        $transactions = $this->appendValueNames($transactions, $name_table);
 
         // Получить данные для нижней таблицы
         $data = $this->downTable($user_id, $daterange, $name_table, $value_table, $currency);
@@ -659,23 +670,23 @@ class Transactions extends BaseController
         $opr_labels = [];
         $share_labels = []; // Инициализируем массив для меток Раздачи
 
-
-        foreach($transactions as $transaction){
+        // Build chart data from raw transactions, before names are translated
+        foreach($raw_transactions as $transaction){
             $payment_dates[] = $transaction['payment_date'];
 
-            if ($transaction['name'] === 'Агенство') {
+            if ($transaction['name'] === 'agency') {
                 $agency_amounts[] = $transaction['amount'];
                 $agency_labels[] = $transaction['payment_date'];
-            }elseif ($transaction['name'] === 'ППР') {
+            }elseif ($transaction['name'] === 'stamp') {
                 $stamp_amounts[] = $transaction['amount'];
                 $stamp_labels[] = $transaction['payment_date'];
-            }elseif ($transaction['name'] === 'Пульт') {
+            }elseif ($transaction['name'] === 'tap') {
                 $tap_amounts[] = $transaction['amount'];
                 $tap_labels[] = $transaction['payment_date'];
-            }elseif ($transaction['name'] === 'Оператор') {
+            }elseif ($transaction['name'] === 'opr') {
                 $opr_amounts[] = $transaction['amount'];
                 $opr_labels[] = $transaction['payment_date'];
-            }elseif ($transaction['name'] === 'Раздача') {
+            }elseif ($transaction['name'] === 'share') {
                 $share_amounts[] = $transaction['amount']; // Суммы для Раздачи
                 $share_labels[] = $transaction['payment_date']; // Метки дат для Раздачи
             }
@@ -805,8 +816,8 @@ class Transactions extends BaseController
         $dashboard = new Dashboard(); 
         $dates = $dashboard->getDates();
 
-        
 
+        
 
         $ProfileController = new Profile();
 

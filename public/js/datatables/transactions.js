@@ -206,6 +206,13 @@ $(document).ready(function() {
                             borderWidth: 3,
                             borderColor: '#66bb6a',
                             backgroundColor: 'rgba(102, 187, 106, 0.5)',
+                        },
+                        {
+                            label: 'Раздача',
+                            data: amounts.share,
+                            borderWidth: 3,
+                            borderColor: '#ffca28',
+                            backgroundColor: 'rgba(255, 202, 40, 0.5)',
                         }
                     ]
                 },
