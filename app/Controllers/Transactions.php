@@ -93,67 +93,87 @@ class Transactions extends BaseController
 
     public function getModelFilter($user_id, $daterange, $name_table, $value_table, $currency)
     {
-        $userModel = new UserModel();
-        $user = $userModel->find($user_id);
-        $permissions = [
-            'agency' => !empty($user['agency_id']) ? explode(',', $user['agency_id']) : [],
-            'stamp'  => !empty($user['stamp_id']) ? explode(',', $user['stamp_id']) : [],
-            'tap'    => !empty($user['tap_id']) ? explode(',', $user['tap_id']) : [],
-            'opr'    => !empty($user['opr_id']) ? explode(',', $user['opr_id']) : [],
-            'share'  => !empty($user['share_id']) ? explode(',', $user['share_id']) : [],
-        ];
 
+        $model = new UserModel();
+        $user = $model->find($user_id);
+        $agency_ids = explode(',', $user['agency_id']);
+        $stamp_ids = explode(',', $user['stamp_id']);
+        $tap_ids = explode(',', $user['tap_id']);
+        $opr_ids = explode(',', $user['opr_id']);
+        $share_ids = explode(',', $user['share_id'] ?? '');
         $model = new TransactionsModel();
 
-        // #1 Date filter
+        // Фильтрация по полям name и value
+        $model->groupStart()
+                    ->orGroupStart()
+                        ->where('name', 'agency')
+                        ->whereIn('value', $agency_ids)
+                    ->groupEnd()
+                    ->orGroupStart()
+                        ->where('name', 'stamp')
+                        ->whereIn('value', $stamp_ids)
+                    ->groupEnd()
+                    ->orGroupStart()
+                        ->where('name', 'tap')
+                        ->whereIn('value', $tap_ids)
+                    ->groupEnd()
+                    ->orGroupStart()
+                        ->where('name', 'opr')
+                        ->whereIn('value', $opr_ids)
+                    ->groupEnd()
+                    ->orGroupStart() // Добавляем группу для share
+                        ->where('name', 'share')
+                        ->whereIn('value', $share_ids)
+                    ->groupEnd()
+                ->groupEnd();
+
+        
+
+
+        // #1 Фильтруем по диапазону дат
         if (!empty($daterange)) {
+            
             $dates = explode(' / ', $daterange);
+            
+            // Получаем начальную и конечную дату из диапазона
             $start_date = date('Y-m-d', strtotime($dates[0]));
             $end_date   = date('Y-m-d', strtotime($dates[1]));
-            $model->where('payment_date >=', $start_date);
-            $model->where('payment_date <=', $end_date);
+
+            // Добавляем условия фильтрации по дате
+            $model->where('payment_date' . " >= ", $start_date);
+            $model->where('payment_date' . " <= ", $end_date);
+
         }
 
-        // #2 Currency filter
+
+        // #2 Фильтруем по Организации
+        if (!empty($name_table)) {
+
+            if ($name_table !== "all") {
+
+                if ($value_table !== "all") {
+                    
+                    $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
+                    
+                    $model->where('name', $name_table)
+                          ->where('value', $value_table);
+                }else{
+
+                    $model->where('name', $name_table);
+                }
+                
+
+            }
+
+
+        }
+
+
+        // #3 Фильтруем по валюте
         if (!empty($currency)) {
             $model->where('currency', $currency);
         }
 
-        // #3 & #4 Combined Organization and Permission filter
-        if (!empty($name_table) && $name_table !== 'all') {
-            $model->where('name', $name_table);
-            $allowed_ids = $permissions[$name_table] ?? [];
-
-            if (!empty($value_table) && $value_table !== 'all') {
-                // The incoming $value_table is the ID itself (e.g., '4')
-                $id = $value_table;
-                
-                if (in_array($id, $allowed_ids)) {
-                    $model->where('value', $id);
-                } else {
-                    $model->where('1 = 0'); // No permission for this ID
-                }
-            } else {
-                // "All" of a specific type is selected
-                if (!empty($allowed_ids)) {
-                    $model->whereIn('value', $allowed_ids);
-                } else {
-                    $model->where('1 = 0'); // No permissions for this type
-                }
-            }
-        } else {
-            // No specific organization type is selected ("All Organizations")
-            $model->groupStart();
-            foreach ($permissions as $name => $ids) {
-                if (!empty($ids)) {
-                    $model->orGroupStart()
-                          ->where('name', $name)
-                          ->whereIn('value', $ids)
-                          ->groupEnd();
-                }
-            }
-            $model->groupEnd();
-        }
 
         return $model;
     }
