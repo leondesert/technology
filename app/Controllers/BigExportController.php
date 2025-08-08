@@ -800,6 +800,9 @@ class BigExportController extends Controller
 
         // ======  Получить данные для верхней таблицы
 
+        if ($name_table !== 'all' && $value_table !== 'all') {
+            $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
+        }
         $uptable_data = $TransactionsController->upTable($user_id, $daterange, $name_table, $value_table, $currency);
 
 

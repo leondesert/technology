@@ -152,9 +152,7 @@ class Transactions extends BaseController
             if ($name_table !== "all") {
 
                 if ($value_table !== "all") {
-                    
-                    $value_table = $this->get_column($name_table, $value_table, '_code', '_id');
-                    
+                    //$value_table = $this->get_column($name_table, $value_table, '_code', '_id');               
                     $model->where('name', $name_table)
                           ->where('value', $value_table);
                 }else{
@@ -664,7 +662,7 @@ class Transactions extends BaseController
         $daterange = $startDate." / ".$endDate;
        
         // Получить данные для верхней таблицы
-        $raw_transactions = $this->upTable($user_id, $daterange, $name_table, $value_table, $currency, false); // Get raw data first
+        $raw_transactions = $this->upTable($user_id, $daterange, $name_table, $value_table, $currency, false);
         $transactions = $this->changeColumsNames($raw_transactions);
         $transactions = $this->appendValueNames($transactions, $name_table);
 
@@ -739,11 +737,8 @@ class Transactions extends BaseController
         foreach ($opr_labels as $index => $label) {
             if(isset($opr_amounts[$index]) && isset($opr_data[$label])) $opr_data[$label] += $opr_amounts[$index];
         }
-        // Исправленный цикл для Раздачи
         foreach ($share_labels as $index => $label) {
-            if (isset($share_amounts[$index]) && isset($share_data[$label])) {
-                $share_data[$label] += $share_amounts[$index];
-            }
+            if(isset($share_amounts[$index]) && isset($share_data[$label])) $share_data[$label] += $share_amounts[$index];
         }
 
         // Преобразуем массивы данных в индексированные массивы
@@ -766,9 +761,6 @@ class Transactions extends BaseController
         foreach ($transactions as &$transaction) {
             $transaction['action'] = '<a href="' . base_url('transactions/edit/' . $transaction['transaction_id']) . '" class="btn btn-info btn-sm"><i class="fas fa-pencil-alt"></i></a> <a href="' . base_url('transactions/delete/' . $transaction['transaction_id']) . '" class="btn btn-danger btn-sm" onclick="return confirmDelete()"><i class="fas fa-trash"></i></a>';
             $transaction['receipt_photo'] = '<button type="button" class="btn btn-primary btn-sm showValue" value="'.$transaction['receipt_photo'].'"><i class="fas fa-eye"></i></button>';
-
-
-
         }
 
         
