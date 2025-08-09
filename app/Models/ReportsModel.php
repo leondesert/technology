@@ -26,9 +26,9 @@ class ReportsModel extends Model
         'balance', 
         'is_report', 
         'status',
+        'search_data',
         'send_date', 
         'check_date', 
-
     ];
 
 

@@ -145,6 +145,7 @@ class ReportsController extends BaseController
         $value_table = $this->request->getPost('value_table');
         $user_id = $this->request->getPost('user_login');
         $report_type = $this->request->getPost('report_type');
+        $searchData = $this->request->getPost('search_data');
 
 
         $reportModel = new ReportsModel();
@@ -289,7 +290,8 @@ class ReportsController extends BaseController
                 'value_table' => $values_table,
                 'balance' => 0,
                 'is_report' => 1,
-                'status' => 0
+                'status' => 0,
+                'search_data' => $searchData
             ];
 
 

@@ -463,6 +463,7 @@ class BigExportController extends Controller
 
         // Получение параметров запроса
         $params = $this->request->getPost();
+        log_message('error', 'BigExportController Params: ' . print_r($params, true));
         $getData = $this->getData($params);
 
         // экспорт по type

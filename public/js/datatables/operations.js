@@ -504,7 +504,7 @@ function ExportExcel(dt, type, url){
       // Преобразуем массив названий в строку для URL
       var visibleColumnsParam = visibleColumnNames.join(','); // Используем запятую как разделитель
             
-
+      params['visibleColumns'] = visibleColumnsParam;
       $('#exportModal').modal({
           backdrop: 'static', // Предотвращение закрытия при клике вне модального окна
           keyboard: false     // Предотвращение закрытия с помощью клавиши Esc
@@ -515,7 +515,7 @@ function ExportExcel(dt, type, url){
       $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
       $('#exportModal #downloadButton').hide();
       
-      params['visibleColumns'] = visibleColumnsParam;
+      
       
       console.log('Export excel:', params);
 
@@ -1845,6 +1845,40 @@ $('#submitReport').click(function(){
     // Получить report_type
     var report_type = document.getElementById('report_type').innerText;
     formData.append('report_type', report_type); 
+
+    var dt = table;
+    var type = report_type;
+
+    var params = dt.ajax.params();
+
+    params['type'] = type;
+    params['start_date'] = document.getElementById('startDate').value;
+    params['end_date'] = document.getElementById('endDate').value;
+    params['user_login'] = document.getElementById('user_login').value;
+    params['currency'] = document.getElementById('currency').value;
+    params['name_table'] = document.getElementById('name_table').value;
+    params['value_table'] = document.getElementById('value_table').value;
+
+
+    var columnVisibility = dt.columns().visible().toArray();
+    
+    
+    // Получаем названия всех столбцов
+    var columnNames = dt.columns().header().toArray().map(function(header) {
+        return $(header).text().trim(); // Убедитесь, что названия столбцов не содержат лишних пробелов
+    });
+    
+    // Фильтруем названия, оставляя только видимые
+    var visibleColumnNames = columnNames.filter(function(name, index) {
+        return columnVisibility[index];
+    });
+    
+    // Преобразуем массив названий в строку для URL
+    var visibleColumnsParam = visibleColumnNames.join(','); // Используем запятую как разделитель
+          
+    params['visibleColumns'] = visibleColumnsParam;
+
+    formData.append('search_data', JSON.stringify(params));
 
     console.log("formData: ", formData);
 
