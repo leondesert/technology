@@ -224,7 +224,7 @@
                                         <th>Дата отправки</th>
                                         <th>Дата проверки</th>
                                         <th>Статус</th>
-                                        <th>Действие</th>
+                                        <th>Действия</th>
                                         
                                         
                                     </tr>
@@ -395,5 +395,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 
+
+<!-- Модальное окно Экспорт Excel -->
+<div class="modal fade" id="exportModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Экспорт данных</h4>
+                <button type="button" class="close closex" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <!-- Анимация загрузки от AdminLTE -->
+                <div id="loadingAnimation" class="spinner-border" role="status">
+                    <span class="sr-only">Загрузка...</span>
+                </div>
+                <!-- Текстовое сообщение -->
+                <p id="modalMessage" class="mt-2">Пожалуйста, подождите... Идет экспорт данных.</p>
+                <!-- Кнопка скачивания от AdminLTE -->
+                <button id="downloadButton" class="btn btn-success mt-2" style="display: none;">Скачать файл</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary closez" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?= $this->endSection() ?>

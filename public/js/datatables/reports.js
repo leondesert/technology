@@ -126,9 +126,16 @@ var table = $('#reports').DataTable({
                         statusCode = '2';
                     }
 
-                    return `
-                        <button class="btn btn-info view-btn" data-id="${row.id}" data-status="${statusCode}" data-user-id="${row.user_id}">Посмотреть</button>
-                    `;
+                    // Кнопка "Посмотреть" - первая
+                    let viewButton = `<button class="btn btn-primary view-btn" data-id="${row.id}" data-status="${statusCode}" data-user-id="${row.user_id}" style="width: 38px; height: 38px;"><i class="fas fa-eye"></i></button>`;
+
+                    // Кнопка "Экспорт" - вторая
+                    let exportButton = '';
+                    if (row.search_data) {
+                        exportButton = `<button class="btn btn-success export-btn" data-search='${row.search_data}' style="width: 38px; height: 38px; margin-left: 5px;"><i class="fas fa-file-excel"></i></button>`;
+                    }
+
+                    return `<div style="display: flex;">${viewButton}${exportButton}</div>`;
                 }
             }
 
@@ -150,6 +157,67 @@ var table = $('#reports').DataTable({
 });
 
 
+// Экспорт в Excel
+$('#reports').on('click', '.export-btn', function(event) {
+    event.preventDefault(); 
+
+    var searchDataString = $(this).attr('data-search');
+    if (!searchDataString) {
+        alert('Нет данных для экспорта.');
+        return false;
+    }
+
+    var params;
+    try {
+        params = JSON.parse(searchDataString);
+    } catch (e) {
+        alert('Ошибка в данных для экспорта. Невозможно обработать JSON.');
+        console.error("JSON Parse Error:", e);
+        return false;
+    }
+
+    $('#exportModal').modal({
+        backdrop: 'static',
+        keyboard: false
+    });
+
+    $('#exportModal #downloadButton').hide();
+    $('#exportModal #loadingAnimation').show();
+    $('#exportModal #modalMessage').text('Пожалуйста, подождите... Идет экспорт данных.');
+
+    $.ajax({
+        url: '/bigexport',
+        method: 'POST',
+        data: params,
+        success: function(data) {
+            if (data.status) {
+                $('#exportModal #loadingAnimation').hide();
+                $('#exportModal #modalMessage').text('Ваш файл готов к скачиванию!');
+                $('#exportModal #downloadButton').show().off('click').on('click', function() {
+                    window.location.href = data.downloadUrl;
+                    $('#exportModal').modal('hide');
+                });
+            } else {
+                $('#exportModal #loadingAnimation').hide();
+                let errorMessage = 'Произошла ошибка при формировании отчета.';
+                if (data.not_requireds && data.not_requireds.length > 0) {
+                    errorMessage = 'Включите следующие столбцы: ' + data.not_requireds.join(', ');
+                } else if (data.message) {
+                    errorMessage = data.message;
+                }
+                $('#exportModal #modalMessage').text(errorMessage);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", xhr, status, error);
+            $('#exportModal #loadingAnimation').hide();
+            $('#exportModal #modalMessage').text('Ошибка запроса. Проверьте консоль для деталей.');
+            $('#exportModal #downloadButton').hide();
+        }
+    });
+
+    return false;
+});
 
 
 // посмотреть
