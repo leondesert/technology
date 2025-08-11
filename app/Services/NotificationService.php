@@ -73,9 +73,10 @@ class NotificationService
         }
 
         return [
-            'approved' => $approvedCount,
+            //закомментировал кол-во отчетов
+            'approved' => 0,//$approvedCount,
             'pending' => $pendingCount,
-            'rejected' => $rejectedCount,
+            'rejected' => 0,//$rejectedCount,
         ];
     }
 
@@ -106,9 +107,10 @@ class NotificationService
         }
 
         return [
-            'approved' => $approvedCount,
+            //закомментировал кол-во отчетов
+            'approved' => 0,//$approvedCount,
             'pending' => $pendingCount,
-            'rejected' => $rejectedCount,
+            'rejected' => 0,//$rejectedCount,
         ];
     }
 
