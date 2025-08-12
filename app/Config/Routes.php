@@ -92,6 +92,22 @@ $routes->post('/opr/update/(:num)', 'OprController::update/$1');
 $routes->get('/opr/delete/(:num)', 'OprController::delete/$1');
 $routes->post('/opr/reg_reward', 'OprController::reg_reward');
 
+$routes->get('/share', 'ShareController::index');
+$routes->get('/share/create', 'ShareController::create');
+$routes->post('/share/register', 'ShareController::register');
+$routes->get('/share/edit/(:num)', 'ShareController::edit/$1');
+$routes->post('/share/update/(:num)', 'ShareController::update/$1');
+$routes->get('/share/delete/(:num)', 'ShareController::delete/$1');
+$routes->post('/share/reg_reward', 'ShareController::reg_reward');
+
+
+$routes->get('/pre_share', 'PreShareController::index');
+$routes->get('/pre_share/create', 'PreShareController::create');
+$routes->post('/pre_share/register', 'PreShareController::register');
+$routes->get('/pre_share/edit/(:num)', 'PreShareController::edit/$1');
+$routes->post('/pre_share/update/(:num)', 'PreShareController::update/$1');
+$routes->get('/pre_share/delete/(:num)', 'PreShareController::delete/$1');
+$routes->get('/pre_share/get_reward', 'PreShareController::get_reward');
 
 
 $routes->get('/operations', 'OperationsController::index');
@@ -210,14 +226,6 @@ $routes->get('/services/edit/(:num)', 'ServicesController::edit/$1');
 
 
 
-$routes->get('/share', 'ShareController::index');
-$routes->post('/share/getDataTable', 'ShareController::getDataTable'); // Для DataTables
-$routes->get('/share/create', 'ShareController::create');
-$routes->post('/share/register', 'ShareController::register');
-$routes->get('/share/edit/(:num)', 'ShareController::edit/$1');
-$routes->post('/share/update/(:num)', 'ShareController::update/$1');
-$routes->get('/share/delete/(:num)', 'ShareController::delete/$1'); // Или POST, если используете форму для удаления
-$routes->post('/share/reg_reward', 'ShareController::reg_reward');
 
 
 

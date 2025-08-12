@@ -135,7 +135,7 @@ class Profile extends BaseController
     {
         $model = new UserModel();
         $user = $model->where('user_id', $user_id)->first();
-        $fourParametrs = ['agency', 'stamp', 'tap', 'opr', 'share'];
+        $fourParametrs = ['agency', 'stamp', 'tap', 'opr', 'share', 'pre_share'];
         $table_names = [];
 
         $i = 0;
@@ -172,6 +172,9 @@ class Profile extends BaseController
                 break;
             case 'share':
                 $table_name = "Раздача";
+                break;
+            case 'pre_share':
+                $table_name = "Предварительная раздача";
                 break;
 
         }

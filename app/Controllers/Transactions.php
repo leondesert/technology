@@ -11,6 +11,7 @@ use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\OprModel;
 use App\Models\ShareModel;
+use App\Models\PreShareModel; // Added
 use App\Models\AcquiringModel;
 
 use App\Controllers\LogsController;
@@ -626,6 +627,9 @@ class Transactions extends BaseController
                 break;
             case 'share': // Добавляем ShareModel
                 $model = new ShareModel();
+                break;
+            case 'pre_share': // Добавляем PreShareModel
+                $model = new PreShareModel();
                 break;
         }
         

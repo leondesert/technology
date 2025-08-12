@@ -178,27 +178,34 @@ $role = $session->get('role');
                   <?php endif; ?>
 
                   <!-- Раздача -->
-                  <?php
-                    // Проверяем, есть ли у редактируемого пользователя назначенные 'share_id'
-                    // или если текущий сессионный пользователь - superadmin, чтобы показать поле
-                    $showSharesField = false;
-                    if (isset($user['share_id']) && !empty($user['share_id'])) { // Проверяем share_id редактируемого пользователя
-                        $showSharesField = true;
-                    } elseif (isset($role) && $role === "superadmin") { // Проверяем роль текущего пользователя (редактора)
-                        $showSharesField = true;
-                    }
-                  ?>
-                  <?php if ($showSharesField):?>
+                  <?php if (!empty($user['share_id']) || $role === "superadmin"):?>
                   <div class="form-group">
                         <label>Раздача</label>
                         <select name="shares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
-                            <?php
-                                $userShareIdsArray = isset($user['share_id']) ? explode(',', $user['share_id']) : [];
-                                foreach ($shares as $share_item):
-                                    $isSelected = in_array($share_item['share_id'], $userShareIdsArray);
+                            <?php foreach ($shares as $share_item): ?>
+                                <?php
+                                    $shareIdsArray = explode(',', $user['share_id']);
+                                    $isSelected = in_array($share_item['share_id'], $shareIdsArray);
                                     $selectedAttribute = $isSelected ? 'selected' : '';
-                            ?>
-                                <option value="<?= esc($share_item['share_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($share_item['share_code']);?></option>
+                                ?>
+                                <option value="<?=$share_item['share_id'];?>" <?=$selectedAttribute;?>><?= esc($share_item['share_code']);?></option>
+                            <?php endforeach; ?>
+                        </select>
+                  </div>
+                  <?php endif; ?>
+
+                  <!-- Предварительная раздача -->
+                  <?php if (!empty($user['pre_share_id']) || $role === "superadmin"):?>
+                  <div class="form-group">
+                        <label>Предварительная раздача</label>
+                        <select name="pre_shares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
+                            <?php foreach ($pre_shares as $pre_share_item): ?>
+                                <?php
+                                    $shareIdsArray = explode(',', $user['pre_share_id']);
+                                    $isSelected = in_array($pre_share_item['pre_share_id'], $shareIdsArray);
+                                    $selectedAttribute = $isSelected ? 'selected' : '';
+                                ?>
+                                <option value="<?= esc($pre_share_item['pre_share_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($pre_share_item['pre_share_code']);?></option>
                             <?php endforeach; ?>
                         </select>
                   </div>

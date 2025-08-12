@@ -154,6 +154,18 @@ $role = $session->get('role');
                 </div>
                 <?php endif; ?>
 
+                <!-- Предварительная раздача -->
+                <?php if ((isset($user['pre_share_id']) && !empty($user['pre_share_id'])) || (isset($role) && $role === "superadmin")):?>
+                <div class="form-group">
+                      <label>Предварительная раздача</label>
+                      <select name="pre_shares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
+                        <?php foreach ($pre_shares as $pre_share_item): ?>
+                          <option value="<?= esc($pre_share_item['pre_share_id'], 'attr');?>"><?= esc($pre_share_item['pre_share_code']);?></option>
+                        <?php endforeach; ?>
+                      </select>
+                </div>
+                <?php endif; ?>
+
                 <?php if (session()->get('role') === 'superadmin'): ?>
                   <div class="form-group">
                       <div class="form-check">

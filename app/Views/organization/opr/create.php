@@ -39,8 +39,6 @@ $role = $session->get('role');
         <form method="post" action="/opr/register">
             <div class="card-body">
 
-
-
                 <div class="form-group">
                     <label for="opr_code">Код оператор</label>
                     <input type="text" class="form-control" id="opr_code" name="opr_code" placeholder="Введите код">

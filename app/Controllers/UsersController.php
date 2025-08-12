@@ -8,6 +8,7 @@ use App\Models\OprModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\ShareModel;
+use App\Models\PreShareModel;
 use App\Controllers\LogsController;
 use App\Controllers\Profile;
 
@@ -70,7 +71,8 @@ class UsersController extends BaseController
             $taps = $model->findAll();
             $model = new ShareModel(); 
             $shares = $model->findAll();
-
+            $model = new PreShareModel(); 
+            $pre_shares = $model->findAll();
             
 
         }else{
@@ -81,8 +83,8 @@ class UsersController extends BaseController
             $oprs = explode(',', $user['opr_id']);
             $stamps = explode(',', $user['stamp_id']);
             $taps = explode(',', $user['tap_id']);
-            $shares_ids = explode(',', $user['share_id'] ?? '');
-
+            $shares_ids = explode(',', $user['share_id']);
+            $pre_shares_ids = explode(',', $user['pre_share_id']);
 
             $model = new AgencyModel();
             $agencies = $model->whereIn('agency_id', $agencies)->findAll();
@@ -94,7 +96,8 @@ class UsersController extends BaseController
             $taps = $model->whereIn('tap_id', $taps)->findAll();
             $model = new ShareModel(); 
             $shares = $model->whereIn('share_id', $shares_ids)->findAll();
-
+            $model = new PreShareModel(); 
+            $pre_shares = $model->whereIn('pre_share_id', $pre_shares_ids)->findAll();
             
         }
 
@@ -112,7 +115,8 @@ class UsersController extends BaseController
             'oprs' => $oprs, 
             'stamps' => $stamps, 
             'taps' => $taps,
-            'shares' => $shares, 
+            'shares' => $shares,
+            'pre_shares' => $pre_shares,
             'filters' => $table_names,
             'user' => $user,
             
@@ -147,8 +151,9 @@ class UsersController extends BaseController
             $model = new TapModel();
             $taps = $model->findAll();
             $model = new ShareModel();
-            $shares_all = $model->findAll(); 
-            
+            $shares = $model->findAll();
+            $model = new PreShareModel();
+            $pre_shares = $model->findAll();            
 
         }else{
             $user_id = session()->get('user_id');
@@ -159,8 +164,8 @@ class UsersController extends BaseController
             $oprs = explode(',', $user['opr_id']);
             $stamps = explode(',', $user['stamp_id']);
             $taps = explode(',', $user['tap_id']);
-            $shares_ids = explode(',', $user['share_id'] ?? ''); 
-
+            $shares_ids = explode(',', $user['share_id'] ?? '');
+            $pre_shares_ids = explode(',', $user['pre_share_id'] ?? '');
 
             $model = new AgencyModel();
             $agencies = $model->whereIn('agency_id', $agencies)->findAll();
@@ -171,8 +176,9 @@ class UsersController extends BaseController
             $model = new TapModel();
             $taps = $model->whereIn('tap_id', $taps)->findAll();
             $model = new ShareModel(); 
-            $shares_all = $model->whereIn('share_id', $shares_ids)->findAll();
-
+            $shares = $model->whereIn('share_id', $shares_ids)->findAll();
+            $model = new PreShareModel(); 
+            $pre_shares = $model->whereIn('pre_share_id', $pre_shares_ids)->findAll();
         }
 
         
@@ -207,7 +213,8 @@ class UsersController extends BaseController
             'oprs' => $oprs, 
             'stamps' => $stamps, 
             'taps' => $taps,
-            'shares' => $shares_all, 
+            'shares' => $shares,
+            'pre_shares' => $pre_shares, 
             'filters' => $table_names,
             'roles' => $roles,
             
@@ -258,14 +265,11 @@ class UsersController extends BaseController
         $stamps = $this->request->getPost('stamps');
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
 
-        $shares_post = $this->request->getPost('shares');
-        // ОТЛАДКА:
-        log_message('error', 'Raw POST shares data (register): ' . print_r($this->request->getPost('shares'), true));
-        
-        // Если это массив, объединяем в строку через запятую. 
-        // Если не массив (например, одиночное значение или null), используем его как есть или пустую строку.
-        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : ($shares_post ?: '');
-        log_message('error', 'Processed shares_post for DB (register): ' . $shares_post);
+        $shares = $this->request->getPost('shares');
+        $shares = is_array($shares) ? implode(',', $shares) : '';
+
+        $pre_shares = $this->request->getPost('pre_shares');
+        $pre_shares = is_array($pre_shares) ? implode(',', $pre_shares) : '';
 
         
         $role = "user"; 
@@ -307,7 +311,8 @@ class UsersController extends BaseController
             'opr_id' => $oprs,
             'tap_id' => $taps,
             'stamp_id' => $stamps,
-            'share_id' => $shares_post,
+            'share_id' => $shares,
+            'pre_share_id' => $pre_shares,
             'parent' => $parent_value_for_db, 
             'start_date' => $start_date,
             'end_date' => $end_date,
@@ -346,15 +351,11 @@ class UsersController extends BaseController
         $stamps = $this->request->getPost('stamps');
         $stamps = is_array($stamps) ? implode(',', $stamps) : '';
 
-        $shares_post = $this->request->getPost('shares');
-        // ОТЛАДКА:
-        log_message('error', 'Raw POST shares data (update): ' . print_r($this->request->getPost('shares'), true));
+        $shares = $this->request->getPost('shares');
+        $shares = is_array($shares) ? implode(',', $shares) : '';
 
-        // Если это массив, объединяем в строку через запятую.
-        // Если не массив (например, одиночное значение или null), используем его как есть или пустую строку.
-        $shares_post = is_array($shares_post) ? implode(',', $shares_post) : ($shares_post ?: '');
-        log_message('error', 'Processed shares_post for DB (update): ' . $shares_post);
-
+        $pre_shares = $this->request->getPost('pre_shares');
+        $pre_shares = is_array($pre_shares) ? implode(',', $pre_shares) : '';
 
         $role = "user"; 
         if($this->request->getPost('role')){
@@ -374,7 +375,8 @@ class UsersController extends BaseController
             'opr_id' => $oprs,
             'tap_id' => $taps,
             'stamp_id' => $stamps,
-            'share_id' => $shares_post,
+            'share_id' => $shares,
+            'pre_share_id' => $pre_shares,
             'fio' => $fio,
             'acquiring' => $acquiring,
             'is_airline' => $is_airline,

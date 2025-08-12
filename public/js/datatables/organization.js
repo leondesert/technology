@@ -202,7 +202,8 @@ const paths = {
     '/stamp': 'stamp',
     '/tap': 'tap',
     '/opr': 'opr',
-    '/share': 'share'
+    '/share': 'share',
+    '/pre_share': 'pre_share'
 };
 
 const pathname = window.location.pathname;

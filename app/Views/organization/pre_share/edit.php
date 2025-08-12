@@ -14,12 +14,12 @@ $role = $session->get('role');
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Оператор</h1>
+            <h1 class="m-0">Предварительная раздача</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="/">Главная</a></li>
-              <li class="breadcrumb-item active">Оператор / Изменить</li>
+              <li class="breadcrumb-item active">Предварительная раздача / Изменить</li>
             </ol>
           </div><!-- /.col -->
         </div><!-- /.row -->
@@ -31,7 +31,7 @@ $role = $session->get('role');
       <div class="container-fluid">
         <div class="row">
 
-            <?= $this->include('blocks/organization_edit') ?>
+            <?= $this->include('blocks/organization_pre_share_edit') ?>
 
         </div>
         <!-- /.row -->
