@@ -140,6 +140,8 @@
                                     <option value="stamp">ППР</option>
                                     <option value="tap">Пульт</option>
                                     <option value="opr">Оператор</option>
+                                    <option value="share">Раздача</option>
+                                    <option value="pre_share">Предварительная раздача</option>
                                 </select>
                             </div>
 

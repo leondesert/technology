@@ -225,7 +225,7 @@ class ServicesController extends BaseController
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
         // Убираем лишнее преобразование, так как теперь в форме передается ID
-        // $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
+        $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
 
 
         if ($acquiring === 'not_select') {
@@ -295,7 +295,7 @@ class ServicesController extends BaseController
         $model = new ServicesModel();
         $services = $model->find($id);
         // Убираем преобразование, так как теперь в форме используется ID
-        // $services['value'] = $TransactionsController->get_column($services['name'], $services['value'], '_id', '_code');
+        $services['value'] = $TransactionsController->get_column($services['name'], $services['value'], '_id', '_code');
 
 
         $currencies = ['TJS', 'RUB'];
@@ -339,7 +339,7 @@ class ServicesController extends BaseController
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
         // Убираем лишнее преобразование, так как теперь в форме передается ID
-        // $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
+        $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
 
         if ($acquiring === 'not_select') {
             $acquiring = null;
