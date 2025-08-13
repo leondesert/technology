@@ -102,7 +102,8 @@ class Transactions extends BaseController
         $tap_ids = explode(',', $user['tap_id']);
         $opr_ids = explode(',', $user['opr_id']);
         $share_ids = explode(',', $user['share_id'] ?? '');
-        $ReshareModel = new ReshareModel();
+        $reshare_ids = explode(',', $user['reshare_id'] ?? '');
+
         $model = new TransactionsModel();
 
         // Фильтрация по полям name и value
@@ -195,8 +196,9 @@ class Transactions extends BaseController
         $model = new OprModel();
         $oprs = $model->findAll();
         $model = new ShareModel();
-        $shares = $shareModel->findAll();
-        $reshares = $ReshareModel->findAll();
+        $shares = $model->findAll();
+        $model = new ReshareModel();
+        $reshares = $model->findAll();
 
         foreach ($transactions as $key => $transaction) {
             switch ($transaction['name']) {
