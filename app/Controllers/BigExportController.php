@@ -27,7 +27,7 @@ use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\OprModel;
 use App\Models\ShareModel;
-use App\Models\PreShareModel;
+use App\Models\ReshareModel;
 use App\Models\ReportsModel;
 use App\Models\PaysModel;
 
@@ -196,10 +196,10 @@ class BigExportController extends Controller
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'share.share_code', 'pre_share.pre_share_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
+        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'share.share_code', 'reshare.reshare_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'taxes.tax_amount_main', 'tickets.penalty_currency', 'tickets.penalty_summa', 'tickets.penalty', 'tickets.reward', 'tickets.reward_procent'];
 
         // Заголовки
-        $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код раздачи', 'Код предварительной раздачи', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
+        $headers = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Время формирования', 'Тип операции', 'Тип транзакции', 'Номер билета', 'Номер старшего билета', 'Номер основного билета', 'Тариф цена', 'PNR', 'Дата оформления', 'Индентификатор продавца', 'Время оформления', 'Время оформления UTC', 'Сумма обмена без EMD', 'Код оператора', 'Код раздачи', 'Код пере-раздачи', 'Код агентства', 'Сумма EMD', 'Вид оплаты', 'Сумма оплаты', 'ФИО', 'Паспорт', 'Тип', 'Гражданство', 'Маршрут', 'Перевозчик', 'Класс', 'Рейс', 'Дата полёта', 'Время полёта', 'Тариф', 'Код ППР', 'Код пульта', 'Код сбора', 'Сумма сбора', 'Суммы сборов', 'Курс валюты', 'Сумма штрафа', 'Штраф', 'Вознаграждение', 'Процент вознаграждение'];
 
         $uniqueTax = session()->get('uniqueTaxCodes');
     
@@ -220,9 +220,9 @@ class BigExportController extends Controller
 
 
         // Обязательные
-        $requireds = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Тип операции', 'Тип транзакции', 'Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи', 'Код предварительной раздачи', 'Маршрут', 'Перевозчик', 'Тариф цена', 'Суммы сборов', 'Код сбора'];
+        $requireds = ['Тип билета', 'Валюта билета', 'Дата формирования', 'Тип операции', 'Тип транзакции', 'Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи', 'Код пере-раздачи', 'Маршрут', 'Перевозчик', 'Тариф цена', 'Суммы сборов', 'Код сбора'];
 
-        $requireds_colums = ['tickets_type', 'tickets_currency', 'tickets_dealdate', 'tickets_OPTYPE', 'tickets_TRANS_TYPE', 'agency_code', 'stamp_code', 'tap_code', 'opr_code', 'share_code','pre_share_code','citycodes', 'carrier', 'tickets_FARE', 'tax_amount_main', 'tax_code'];
+        $requireds_colums = ['tickets_type', 'tickets_currency', 'tickets_dealdate', 'tickets_OPTYPE', 'tickets_TRANS_TYPE', 'agency_code', 'stamp_code', 'tap_code', 'opr_code', 'share_code','reshare_code','citycodes', 'carrier', 'tickets_FARE', 'tax_amount_main', 'tax_code'];
 
 
         // Определить какое обязательное поле отсутсвует
@@ -267,7 +267,7 @@ class BigExportController extends Controller
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left');
         $builder->join('agency', 'agency.agency_id = tickets.agency_id', 'left');
         $builder->join('share', 'share.share_id = tickets.share_id', 'left');
-        $builder->join('pre_share', 'pre_share.pre_share_id = tickets.pre_share_id', 'left');
+        $builder->join('reshare', 'reshare.reshare_id = tickets.reshare_id', 'left');
         $builder->join('passengers', 'passengers.passengers_id = tickets.passengers_id', 'left');
         $builder->join('stamp', 'stamp.stamp_id = tickets.stamp_id', 'left');
         $builder->join('tap', 'tap.tap_id = tickets.tap_id', 'left');
@@ -1344,7 +1344,7 @@ class BigExportController extends Controller
         }
 
 
-        $params['visibleColumns'] = 'Тип билета,Валюта билета,Дата формирования,Время формирования,Тип операции,Тип транзакции,Номер билета,Номер старшего билета,Номер основного билета,Тариф цена,PNR,Дата оформления,Индентификатор продавца,Время оформления,Время оформления UTC,Сумма обмена без EMD,Код оператора,Код Раздачи,Код предварительной раздачи
+        $params['visibleColumns'] = 'Тип билета,Валюта билета,Дата формирования,Время формирования,Тип операции,Тип транзакции,Номер билета,Номер старшего билета,Номер основного билета,Тариф цена,PNR,Дата оформления,Индентификатор продавца,Время оформления,Время оформления UTC,Сумма обмена без EMD,Код оператора,Код Раздачи,Код пере-раздачи
         ,Код агентства,Сумма EMD,Вид оплаты,Сумма оплаты,ФИО,Паспорт,Тип,Гражданство,Маршрут,Перевозчик,Класс,Рейс,Дата полёта,Время полёта,Тариф,Код ППР,Код пульта,Код сбора,Сумма сбора';
         $getData = $this->getData($params);
         $data = $getData["data"];
@@ -1796,7 +1796,7 @@ class BigExportController extends Controller
         $has_four_param_filter = false;
         if (isset($params['searchBuilder']['criteria'])) {
             foreach ($params['searchBuilder']['criteria'] as $criteria) {
-                if (!empty($criteria['value'][0]) && in_array($criteria['data'], ['Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи', 'Код предварительной раздачи
+                if (!empty($criteria['value'][0]) && in_array($criteria['data'], ['Код агентства', 'Код ППР', 'Код пульта', 'Код оператора', 'Код раздачи', 'Код пере-раздачи
                 '])) {
                     $has_four_param_filter = true; // Устанавливаем флаг, что такой фильтр есть
                     $current_criteria_table_name = '';
@@ -1806,8 +1806,8 @@ class BigExportController extends Controller
                         case 'Код пульта': $current_criteria_table_name = 'tap'; break;
                         case 'Код оператора': $current_criteria_table_name = 'opr'; break;
                         case 'Код раздачи': $current_criteria_table_name = 'share'; break;
-                        case 'Код предварительной раздачи
-                        ': $current_criteria_table_name = 'pre_share'; break;
+                        case 'Код пере-раздачи
+                        ': $current_criteria_table_name = 'reshare'; break;
                     }
 
                     if ($current_criteria_table_name) {
@@ -1913,8 +1913,8 @@ class BigExportController extends Controller
                 $model = new ShareModel();
                 return $model;
                 break;
-            case 'pre_share':
-                $model = new PreShareModel();
+            case 'reshare':
+                $model = new ReshareModel();
                 return $model;
                 break;
         }
@@ -1938,8 +1938,8 @@ class BigExportController extends Controller
             case 'share':
                 return 'Код раздачи';
                 break;
-            case 'pre_share':
-                return 'Код предварительной раздачи
+            case 'reshare':
+                return 'Код пере-раздачи
                 ';
                 break;
         }
@@ -2191,9 +2191,9 @@ class BigExportController extends Controller
                 case 'Код раздачи':
                     $table_name = "share";
                     break;
-                case 'Код предварительной раздачи
+                case 'Код пере-раздачи
                 ':
-                    $table_name = "pre_share";
+                    $table_name = "reshare";
                     break;
 
             }
@@ -2211,7 +2211,7 @@ class BigExportController extends Controller
             'tap' => 'stamp',
             'opr' => 'tap',
             'share' => 'opr',
-            'pre_share' => 'share'
+            'reshare' => 'share'
         ];
 
         // Идем по цепочке родителей для var2, пока не достигнем корня иерархии
@@ -2234,7 +2234,7 @@ class BigExportController extends Controller
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_TRANS_TYPE', 'tickets.tickets_type', 'fops.fops_amount', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'opr.opr_code', 'share.share_code', 'pre_share.pre_share_code', 'passengers.fio', 'segments.flydate', 'segments.citycodes'];
+        $ticketsFields = ['tickets.tickets_TRANS_TYPE', 'tickets.tickets_type', 'fops.fops_amount', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'opr.opr_code', 'share.share_code', 'reshare.reshare_code', 'passengers.fio', 'segments.flydate', 'segments.citycodes'];
 
         // $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount'];
 
@@ -2247,7 +2247,7 @@ class BigExportController extends Controller
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left');
         $builder->join('agency', 'agency.agency_id = tickets.agency_id', 'left');
         $builder->join('share', 'share.share_id = tickets.share_id', 'left');
-        $builder->join('pre_share', 'pre_share.pre_share_id = tickets.pre_share_id', 'left');
+        $builder->join('reshare', 'reshare.reshare_id = tickets.reshare_id', 'left');
         $builder->join('stamp', 'stamp.stamp_id = tickets.stamp_id', 'left');
         $builder->join('tap', 'tap.tap_id = tickets.tap_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');

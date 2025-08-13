@@ -1357,8 +1357,8 @@ var columns = [
         { data: 'opr.opr_code', title: 'Код оператора'},
         // Таблица "share" (Раздача)
         { data: 'share.share_code', title: 'Код раздачи', name: 'share.share_code'},
-        // Таблица "pre_share" (Предварительная раздача)
-        { data: 'pre_share.pre_share_code', title: 'Код предварительной раздачи', name: 'pre_share.pre_share_code'},
+        // Таблица "reshare" (Пере-раздача)
+        { data: 'reshare.reshare_code', title: 'Код пере-раздачи', name: 'reshare.reshare_code'},
         // Таблица "agency"
         { data: 'agency.agency_code', title: 'Код агентства'},
         // Таблица "emd"
@@ -1646,11 +1646,11 @@ table.on('search.dt', function() {
                                 "type": "string", 
                                 "value": [value_table]   
                             };
-                } else if (name_table === "pre_share") { 
+                } else if (name_table === "reshare") { 
                     criteria = {
                                 "condition": "=",
-                                "data": "Код предварительной раздачи",      
-                                "origData": "pre_share.pre_share_code", 
+                                "data": "Код пере-раздачи",      
+                                "origData": "reshare.reshare_code", 
                                 "type": "string", 
                                 "value": [value_table]   
                             };

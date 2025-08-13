@@ -101,13 +101,13 @@ $routes->get('/share/delete/(:num)', 'ShareController::delete/$1');
 $routes->post('/share/reg_reward', 'ShareController::reg_reward');
 
 
-$routes->get('/pre_share', 'PreShareController::index');
-$routes->get('/pre_share/create', 'PreShareController::create');
-$routes->post('/pre_share/register', 'PreShareController::register');
-$routes->get('/pre_share/edit/(:num)', 'PreShareController::edit/$1');
-$routes->post('/pre_share/update/(:num)', 'PreShareController::update/$1');
-$routes->get('/pre_share/delete/(:num)', 'PreShareController::delete/$1');
-$routes->get('/pre_share/get_reward', 'PreShareController::get_reward');
+$routes->get('/reshare', 'ReshareController::index');
+$routes->get('/reshare/create', 'ReshareController::create');
+$routes->post('/reshare/register', 'ReshareController::register');
+$routes->get('/reshare/edit/(:num)', 'ReshareController::edit/$1');
+$routes->post('/reshare/update/(:num)', 'ReshareController::update/$1');
+$routes->get('/reshare/delete/(:num)', 'ReshareController::delete/$1');
+$routes->get('/reshare/get_reward', 'ReshareController::get_reward');
 
 
 $routes->get('/operations', 'OperationsController::index');

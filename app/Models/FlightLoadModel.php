@@ -8,7 +8,7 @@ class FlightLoadModel extends Model
 {
     protected $table = 'tickets';
     protected $primaryKey = 'tickets_id';
-    protected $allowedFields = ['tickets_type', 'tickets_currency', 'tickets_dealdate', 'tickets_dealtime', 'tickets_OPTYPE', 'tickets_TRANS_TYPE', 'tickets_BSONUM', 'tickets_EX_BSONUM', 'tickets_TO_BSONUM', 'tickets_FARE', 'tickets_PNR_LAT', 'tickets_DEAL_date', 'tickets_DEAL_disp', 'tickets_DEAL_time', 'tickets_DEAL_utc', 'summa_no_found', 'opr_code', 'agency_code', 'emd_value', 'fops_type', 'fops_amount', 'fio', 'pass', 'pas_type', 'citizenship', 'citycodes', 'carrier', 'class', 'reis', 'flydate', 'flytime', 'basicfare', 'stamp_code', 'tap_code', 'tax_code', 'tax_amount', 'pre_share_code'];
+    protected $allowedFields = ['tickets_type', 'tickets_currency', 'tickets_dealdate', 'tickets_dealtime', 'tickets_OPTYPE', 'tickets_TRANS_TYPE', 'tickets_BSONUM', 'tickets_EX_BSONUM', 'tickets_TO_BSONUM', 'tickets_FARE', 'tickets_PNR_LAT', 'tickets_DEAL_date', 'tickets_DEAL_disp', 'tickets_DEAL_time', 'tickets_DEAL_utc', 'summa_no_found', 'opr_code', 'agency_code', 'emd_value', 'fops_type', 'fops_amount', 'fio', 'pass', 'pas_type', 'citizenship', 'citycodes', 'carrier', 'class', 'reis', 'flydate', 'flytime', 'basicfare', 'stamp_code', 'tap_code', 'tax_code', 'tax_amount', 'reshare_code'];
 
     public function countFiltered($searchValue, $filters)
     {
@@ -86,7 +86,7 @@ class FlightLoadModel extends Model
         $builder->join('emd', 'emd.tickets_id = tickets.tickets_id', 'left');
         $builder->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
-        $builder->join('pre_share', 'pre_share.pre_share_id = tickets.pre_share_id', 'left');
+        $builder->join('reshare', 'reshare.reshare_id = tickets.reshare_id', 'left');
     }
 
     private function joinTables2($builder)
@@ -133,7 +133,7 @@ class FlightLoadModel extends Model
             ->orLike('tap_code', $searchValue)
             ->orLike('tax_code', $searchValue)
             ->orLike('tax_amount', $searchValue)
-            ->orLike('pre_share_code', $searchValue)
+            ->orLike('reshare_code', $searchValue)
             ->groupEnd();
     }
 

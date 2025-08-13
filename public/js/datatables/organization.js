@@ -203,7 +203,7 @@ const paths = {
     '/tap': 'tap',
     '/opr': 'opr',
     '/share': 'share',
-    '/pre_share': 'pre_share'
+    '/reshare': 'reshare'
 };
 
 const pathname = window.location.pathname;

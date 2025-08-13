@@ -8,7 +8,7 @@ use App\Models\AgencyModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\OprModel;
-use App\Models\PreShareModel;
+use App\Models\ReshareModel;
 use App\Controllers\LogsController;
 use App\Controllers\Transactions;
 use App\Controllers\Dashboard;
@@ -157,8 +157,8 @@ class AnalyticsController extends BaseController
             case 'opr':
                 return "Оператор";
                 break;
-            case 'pre_share':
-                return "Предварительная раздача";
+            case 'reshare':
+                return "Пере-раздача";
                 break;
             default:
                 return "Все";
@@ -174,9 +174,9 @@ class AnalyticsController extends BaseController
         $builder = $db->table('tickets');
 
         // Определение нужных полей
-        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'tickets.penalty', 'tickets.reward', 'pre_share.pre_share_code'];
+        $ticketsFields = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_dealtime', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_BSONUM', 'tickets.tickets_EX_BSONUM', 'tickets.tickets_TO_BSONUM', 'tickets.tickets_FARE', 'tickets.tickets_PNR_LAT', 'tickets.tickets_DEAL_date', 'tickets.tickets_DEAL_disp', 'tickets.tickets_DEAL_time', 'tickets.tickets_DEAL_utc', 'tickets.summa_no_found', 'opr.opr_code', 'agency.agency_code', 'emd.emd_value', 'fops.fops_type', 'fops.fops_amount', 'passengers.fio', 'passengers.pass', 'passengers.pas_type', 'passengers.citizenship', 'segments.citycodes', 'segments.carrier', 'segments.class', 'segments.reis', 'segments.flydate', 'segments.flytime', 'segments.basicfare', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_code', 'taxes.tax_amount', 'tickets.penalty', 'tickets.reward''._code'];
 
-        $ticketsFields2 = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_FARE', 'segments.citycodes', 'opr.opr_code', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_amount', 'segments.carrier', 'pre_share.pre_share_code'];
+        $ticketsFields2 = ['tickets.tickets_type', 'tickets.tickets_currency', 'tickets.tickets_dealdate', 'tickets.tickets_OPTYPE', 'tickets.tickets_TRANS_TYPE', 'tickets.tickets_FARE', 'segments.citycodes', 'opr.opr_code', 'agency.agency_code', 'stamp.stamp_code', 'tap.tap_code', 'taxes.tax_amount', 'segments.carrier''._code'];
 
         
         // Формирование строки запроса
@@ -192,7 +192,7 @@ class AnalyticsController extends BaseController
         $builder->join('emd', 'emd.tickets_id = tickets.tickets_id', 'left');
         $builder->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left');
         $builder->join('segments', 'segments.tickets_id = tickets.tickets_id', 'left');
-        $builder->join('pre_share', 'pre_share.pre_share_id = tickets.pre_share_id', 'left');
+        $builder->join('reshare', 'reshare.reshare_id = tickets.reshare_id', 'left');
         
 
 

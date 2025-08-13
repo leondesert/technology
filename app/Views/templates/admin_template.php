@@ -315,11 +315,11 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
                     </a>
                   </li>
                   <?php endif; ?>
-                  <?php if (!empty($user['pre_share_id']) || $user['role'] === "superadmin"):?>
+                  <?php if (!empty($user['reshare_id']) || $user['role'] === "superadmin"):?>
                   <li class="nav-item">
-                    <a href="/pre_share" class="nav-link">
+                    <a href="/reshare" class="nav-link">
                       <i class="far fa-circle nav-icon"></i>
-                      <p>Пред. Раздача</p>
+                      <p>Пере-раздача</p>
                     </a>
                   </li>
                   <?php endif; ?>

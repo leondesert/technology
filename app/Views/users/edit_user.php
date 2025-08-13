@@ -194,18 +194,18 @@ $role = $session->get('role');
                   </div>
                   <?php endif; ?>
 
-                  <!-- Предварительная раздача -->
-                  <?php if (!empty($user['pre_share_id']) || $role === "superadmin"):?>
+                  <!-- Пере-раздача -->
+                  <?php if (!empty($user['reshare_id']) || $role === "superadmin"):?>
                   <div class="form-group">
-                        <label>Предварительная раздача</label>
-                        <select name="pre_shares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
-                            <?php foreach ($pre_shares as $pre_share_item): ?>
+                        <label>Пере-раздача</label>
+                        <select name="reshares[]" class="select2" multiple="multiple" data-placeholder="Выбрать" style="width: 100%;">
+                            <?php foreach ($reshares as $reshare_item): ?>
                                 <?php
-                                    $shareIdsArray = explode(',', $user['pre_share_id']);
-                                    $isSelected = in_array($pre_share_item['pre_share_id'], $shareIdsArray);
+                                    $shareIdsArray = explode(',', $user['reshare_id']);
+                                    $isSelected = in_array($reshare_item['reshare_id'], $shareIdsArray);
                                     $selectedAttribute = $isSelected ? 'selected' : '';
                                 ?>
-                                <option value="<?= esc($pre_share_item['pre_share_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($pre_share_item['pre_share_code']);?></option>
+                                <option value="<?= esc($reshare_item['reshare_id'], 'attr');?>" <?=$selectedAttribute;?>><?= esc($reshare_item['reshare_code']);?></option>
                             <?php endforeach; ?>
                         </select>
                   </div>

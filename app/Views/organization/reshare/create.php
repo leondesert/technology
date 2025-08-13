@@ -14,12 +14,12 @@ $role = $session->get('role');
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Предварительная раздача</h1>
+            <h1 class="m-0">Раздача</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="/">Главная</a></li>
-              <li class="breadcrumb-item active">Предварительная раздача / Создать</li>
+              <li class="breadcrumb-item active">Раздача / Создать</li>
             </ol>
           </div><!-- /.col -->
         </div><!-- /.row -->
@@ -32,36 +32,36 @@ $role = $session->get('role');
   <section class="content">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title">Создать предварительную раздачу</h3>
+        <h3 class="card-title">Создать раздачу</h3>
       </div>
       <!-- /.card-header -->
         <!-- form start -->
-        <form method="post" action="/pre_share/register">
+        <form method="post" action="/reshare/register">
             <div class="card-body">
 
                 <div class="form-group">
-                    <label for="pre_share_code">Код предварительной раздачи</label>
-                    <input type="text" class="form-control" id="pre_share_code" name="pre_share_code" placeholder="Введите код">
+                    <label for="reshare_code">Код раздачи</label>
+                    <input type="text" class="form-control" id="reshare_code" name="reshare_code" placeholder="Введите код">
                 </div>
                 <div class="form-group">
-                    <label for="pre_share_name">Название предварительной раздачи</label>
-                    <input type="text" class="form-control" id="pre_share_name" name="pre_share_name" placeholder="Введите название">
+                    <label for="reshare_name">Название раздачи</label>
+                    <input type="text" class="form-control" id="reshare_name" name="reshare_name" placeholder="Введите название">
                 </div>
                 <div class="form-group">
-                    <label for="pre_share_address">Адрес предварительной раздачи</label>
-                    <input type="text" class="form-control" id="pre_share_address" name="pre_share_address" placeholder="Введите адрес">
+                    <label for="reshare_address">Адрес раздачи</label>
+                    <input type="text" class="form-control" id="reshare_address" name="reshare_address" placeholder="Введите адрес">
                 </div>
                 <div class="form-group">
-                    <label for="pre_share_phone">Телефон предварительной раздачи</label>
-                    <input type="tel" class="form-control" id="pre_share_phone" name="pre_share_phone" placeholder="Введите телефон">
+                    <label for="reshare_phone">Телефон раздачи</label>
+                    <input type="tel" class="form-control" id="reshare_phone" name="reshare_phone" placeholder="Введите телефон">
                 </div>
                 <div class="form-group">
-                    <label for="pre_share_mail">Электронная почта предварительной раздачи</label>
-                    <input type="email" class="form-control" id="pre_share_mail" name="pre_share_mail" placeholder="Введите email">
+                    <label for="reshare_mail">Электронная почта раздачи</label>
+                    <input type="email" class="form-control" id="reshare_mail" name="reshare_mail" placeholder="Введите email">
                 </div>
                 <!-- <div class="form-group">
-                    <label for="pre_share_type">Тип предварительной раздачи</label>
-                    <input type="text" class="form-control" id="pre_share_type" name="pre_share_type" placeholder="Введите тип раздачи">
+                    <label for="reshare_type">Тип пере-раздачи</label>
+                    <input type="text" class="form-control" id="reshare_type" name="reshare_type" placeholder="Введите тип раздачи">
                 </div> -->
                 <div class="form-group">
                     <label for="reward">Вознаграждение</label>

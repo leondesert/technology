@@ -8,7 +8,7 @@ use App\Models\OprModel;
 use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\ShareModel;
-use App\Models\PreShareModel;
+use App\Models\ReshareModel;
 use App\Controllers\LogsController;
 use App\Controllers\Profile;
 
@@ -71,8 +71,8 @@ class UsersController extends BaseController
             $taps = $model->findAll();
             $model = new ShareModel(); 
             $shares = $model->findAll();
-            $model = new PreShareModel(); 
-            $pre_shares = $model->findAll();
+            $model = new ReshareModel(); 
+            $reshares = $model->findAll();
             
 
         }else{
@@ -84,7 +84,7 @@ class UsersController extends BaseController
             $stamps = explode(',', $user['stamp_id']);
             $taps = explode(',', $user['tap_id']);
             $shares_ids = explode(',', $user['share_id']);
-            $pre_shares_ids = explode(',', $user['pre_share_id']);
+            $reshares_ids = explode(',', $user['reshare_id']);
 
             $model = new AgencyModel();
             $agencies = $model->whereIn('agency_id', $agencies)->findAll();
@@ -96,8 +96,8 @@ class UsersController extends BaseController
             $taps = $model->whereIn('tap_id', $taps)->findAll();
             $model = new ShareModel(); 
             $shares = $model->whereIn('share_id', $shares_ids)->findAll();
-            $model = new PreShareModel(); 
-            $pre_shares = $model->whereIn('pre_share_id', $pre_shares_ids)->findAll();
+            $model = new ReshareModel(); 
+            $reshares = $model->whereIn('reshare_id', $reshares_ids)->findAll();
             
         }
 
@@ -116,7 +116,7 @@ class UsersController extends BaseController
             'stamps' => $stamps, 
             'taps' => $taps,
             'shares' => $shares,
-            'pre_shares' => $pre_shares,
+            'reshares' => $reshares,
             'filters' => $table_names,
             'user' => $user,
             
@@ -152,8 +152,8 @@ class UsersController extends BaseController
             $taps = $model->findAll();
             $model = new ShareModel();
             $shares = $model->findAll();
-            $model = new PreShareModel();
-            $pre_shares = $model->findAll();            
+            $model = new ReshareModel();
+            $reshares = $model->findAll();            
 
         }else{
             $user_id = session()->get('user_id');
@@ -165,7 +165,7 @@ class UsersController extends BaseController
             $stamps = explode(',', $user['stamp_id']);
             $taps = explode(',', $user['tap_id']);
             $shares_ids = explode(',', $user['share_id'] ?? '');
-            $pre_shares_ids = explode(',', $user['pre_share_id'] ?? '');
+            $reshares_ids = explode(',', $user['reshare_id'] ?? '');
 
             $model = new AgencyModel();
             $agencies = $model->whereIn('agency_id', $agencies)->findAll();
@@ -177,8 +177,8 @@ class UsersController extends BaseController
             $taps = $model->whereIn('tap_id', $taps)->findAll();
             $model = new ShareModel(); 
             $shares = $model->whereIn('share_id', $shares_ids)->findAll();
-            $model = new PreShareModel(); 
-            $pre_shares = $model->whereIn('pre_share_id', $pre_shares_ids)->findAll();
+            $model = new ReshareModel(); 
+            $reshares = $model->whereIn('reshare_id', $reshares_ids)->findAll();
         }
 
         
@@ -214,7 +214,7 @@ class UsersController extends BaseController
             'stamps' => $stamps, 
             'taps' => $taps,
             'shares' => $shares,
-            'pre_shares' => $pre_shares, 
+            'reshares' => $reshares, 
             'filters' => $table_names,
             'roles' => $roles,
             
@@ -268,8 +268,8 @@ class UsersController extends BaseController
         $shares = $this->request->getPost('shares');
         $shares = is_array($shares) ? implode(',', $shares) : '';
 
-        $pre_shares = $this->request->getPost('pre_shares');
-        $pre_shares = is_array($pre_shares) ? implode(',', $pre_shares) : '';
+        $reshares = $this->request->getPost('reshares');
+        $reshares = is_array($reshares) ? implode(',', $reshares) : '';
 
         
         $role = "user"; 
@@ -312,7 +312,7 @@ class UsersController extends BaseController
             'tap_id' => $taps,
             'stamp_id' => $stamps,
             'share_id' => $shares,
-            'pre_share_id' => $pre_shares,
+            'reshare_id' => $reshares,
             'parent' => $parent_value_for_db, 
             'start_date' => $start_date,
             'end_date' => $end_date,
@@ -354,8 +354,8 @@ class UsersController extends BaseController
         $shares = $this->request->getPost('shares');
         $shares = is_array($shares) ? implode(',', $shares) : '';
 
-        $pre_shares = $this->request->getPost('pre_shares');
-        $pre_shares = is_array($pre_shares) ? implode(',', $pre_shares) : '';
+        $reshares = $this->request->getPost('reshares');
+        $reshares = is_array($reshares) ? implode(',', $reshares) : '';
 
         $role = "user"; 
         if($this->request->getPost('role')){
@@ -376,7 +376,7 @@ class UsersController extends BaseController
             'tap_id' => $taps,
             'stamp_id' => $stamps,
             'share_id' => $shares,
-            'pre_share_id' => $pre_shares,
+            'reshare_id' => $reshares,
             'fio' => $fio,
             'acquiring' => $acquiring,
             'is_airline' => $is_airline,

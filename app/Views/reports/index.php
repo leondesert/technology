@@ -141,7 +141,7 @@
                                     <option value="tap">Пульт</option>
                                     <option value="opr">Оператор</option>
                                     <option value="share">Раздача</option>
-                                    <option value="pre_share">Предварительная раздача</option>
+                                    <option value="reshare">Пере-раздача</option>
                                 </select>
                             </div>
 

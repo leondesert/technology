@@ -71,10 +71,10 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 	->fields(
 		Field::inst('share.share_code')	
 	)
-	// Присоединяем таблицу "pre_share"
-	->leftJoin( 'pre_share', 'pre_share.pre_share_id', '=', 'tickets.pre_share_id' )
+	// Присоединяем таблицу "reshare"
+	->leftJoin( 'reshare', 'reshare.reshare_id', '=', 'tickets.reshare_id' )
 	->fields(
-		Field::inst('pre_share.pre_share_code')	
+		Field::inst('reshare.reshare_code')	
 	)
 	// Присоединяем таблицу "agency"
 	->leftJoin( 'agency', 'agency.agency_id', '=', 'tickets.agency_id' )

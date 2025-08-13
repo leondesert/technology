@@ -11,7 +11,7 @@ use App\Models\StampModel;
 use App\Models\TapModel;
 use App\Models\OprModel;
 use App\Models\ShareModel;
-use App\Models\PreShareModel;
+use App\Models\ReshareModel;
 use App\Models\AcquiringModel;
 
 use App\Controllers\LogsController;
@@ -102,7 +102,7 @@ class Transactions extends BaseController
         $tap_ids = explode(',', $user['tap_id']);
         $opr_ids = explode(',', $user['opr_id']);
         $share_ids = explode(',', $user['share_id'] ?? '');
-        $pre_share_ids = explode(',', $user['pre_share_id'] ?? '');
+        $ReshareModel = new ReshareModel();
         $model = new TransactionsModel();
 
         // Фильтрация по полям name и value
@@ -127,9 +127,9 @@ class Transactions extends BaseController
                         ->where('name', 'share')
                         ->whereIn('value', $share_ids)
                     ->groupEnd()
-                    ->orGroupStart() // Добавляем группу для pre_share
-                        ->where('name', 'pre_share')
-                        ->whereIn('value', $pre_share_ids)
+                    ->orGroupStart() // Добавляем группу для reshare
+                        ->where('name', 'reshare')
+                        ->whereIn('value', $reshare_ids)
                     ->groupEnd()
                 ->groupEnd();
 
@@ -195,15 +195,12 @@ class Transactions extends BaseController
         $model = new OprModel();
         $oprs = $model->findAll();
         $model = new ShareModel();
-        $shares = $model->findAll(); 
-        $model = new PreShareModel();
-        $pre_shares = $model->findAll();
-
-
+        $shares = $shareModel->findAll();
+        $reshares = $ReshareModel->findAll();
 
         foreach ($transactions as $key => $transaction) {
-                switch ($transaction['name']) {
-                    case 'agency':
+            switch ($transaction['name']) {
+                case 'agency':
                         $match = array_search($transaction['value'], array_column($agencies, 'agency_id'));
                         $transactions[$key]['value'] = $agencies[$match]['agency_code'] ?? 'Unknown Agency';
                         $transactions[$key]['name'] = "Агенство";
@@ -228,10 +225,10 @@ class Transactions extends BaseController
                         $transactions[$key]['value'] = $shares[$match]['share_code'] ?? 'Unknown Share';
                         $transactions[$key]['name'] = "Раздача";
                         break;
-                    case 'pre_share':
-                        $match = array_search($transaction['value'], array_column($pre_shares, 'pre_share_id'));
-                        $transactions[$key]['value'] = $pre_shares[$match]['pre_share_code'] ?? 'Unknown PreShare';
-                        $transactions[$key]['name'] = "Предварительная раздача";
+                    case 'reshare':
+                        $match = array_search($transaction['value'], array_column($reshares, 'reshare_id'));
+                        $transactions[$key]['value'] = $reshares[$match]['reshare_code'] ?? 'Unknown Reshare';
+                        $transactions[$key]['name'] = "Пере-раздача";
                         break;
 
                 }
@@ -640,8 +637,8 @@ class Transactions extends BaseController
             case 'share': // Добавляем ShareModel
                 $model = new ShareModel();
                 break;
-            case 'pre_share': // Добавляем PreShareModel
-                $model = new PreShareModel();
+            case 'reshare': // Добавляем ReshareModel
+                $model = new ReshareModel();
                 break;
         }
         
@@ -698,13 +695,13 @@ class Transactions extends BaseController
         $tap_amounts = [];
         $opr_amounts = [];
         $share_amounts = [];
-        $pre_share_amounts = [];
+        $reshare_amounts = [];
         $agency_labels = [];
         $stamp_labels = [];
         $tap_labels = [];
         $opr_labels = [];
         $share_labels = []; // Инициализируем массив для меток Раздачи
-        $pre_share_labels = [];
+        $reshare_labels = [];
 
         // Build chart data from raw transactions, before names are translated
         foreach($raw_transactions as $transaction){
@@ -725,9 +722,9 @@ class Transactions extends BaseController
             }elseif ($transaction['name'] === 'share') {
                 $share_amounts[] = $transaction['amount']; // Суммы для Раздачи
                 $share_labels[] = $transaction['payment_date']; // Метки дат для Раздачи
-            }elseif ($transaction['name'] === 'pre_share') {
-                $pre_share_amounts[] = $transaction['amount'];
-                $pre_share_labels[] = $transaction['payment_date'];
+            }elseif ($transaction['name'] === 'reshare') {
+                $reshare_amounts[] = $transaction['amount'];
+                $reshare_labels[] = $transaction['payment_date'];
             }
 
         }
@@ -743,7 +740,7 @@ class Transactions extends BaseController
         $tap_data = array_fill_keys($labels, 0);
         $opr_data = array_fill_keys($labels, 0);
         $share_data = array_fill_keys($labels, 0);
-        $pre_share_data = array_fill_keys($labels, 0);
+        $reshare_data = array_fill_keys($labels, 0);
 
 
         // Заполняем массивы данными из исходных массивов
@@ -762,8 +759,8 @@ class Transactions extends BaseController
         foreach ($share_labels as $index => $label) {
             if(isset($share_amounts[$index]) && isset($share_data[$label])) $share_data[$label] += $share_amounts[$index];
         }
-        foreach ($pre_share_labels as $index => $label) {
-            if(isset($pre_share_amounts[$index]) && isset($pre_share_data[$label])) $pre_share_data[$label] += $pre_share_amounts[$index];
+        foreach ($reshare_labels as $index => $label) {
+            if(isset($reshare_amounts[$index]) && isset($reshare_data[$label])) $reshare_data[$label] += $reshare_amounts[$index];
         }
 
         // Преобразуем массивы данных в индексированные массивы
@@ -772,7 +769,7 @@ class Transactions extends BaseController
         $tap_amounts = array_values($tap_data);
         $opr_amounts = array_values($opr_data);
         $share_amounts = array_values($share_data); // Данные для Раздачи
-        $pre_share_amounts = array_values($pre_share_data);
+        $reshare_amounts = array_values($reshare_data);
 
         $amounts = [
             'agency' => $agency_amounts,
@@ -780,7 +777,7 @@ class Transactions extends BaseController
             'tap' => $tap_amounts,
             'opr' => $opr_amounts,
             'share' => $share_amounts,
-            'pre_share' => $pre_share_amounts,
+            'reshare' => $reshare_amounts,
         ];
 
 
@@ -1155,8 +1152,8 @@ class Transactions extends BaseController
                 return new OprModel();
             case 'share':
                 return new ShareModel();
-            case 'pre_share':
-                return new PreShareModel();
+            case 'reshare':
+                return new ReshareModel();
             default:
                 // Можно выбросить исключение или вернуть null, если имя таблицы неизвестно
                 // throw new \InvalidArgumentException("Unknown table name: $tableName");

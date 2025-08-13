@@ -744,8 +744,8 @@ class ReportsModel extends Model
                 $model = new ShareModel();
                 return $model;
                 break;
-            case 'pre_share':
-                $model = new PreShareModel();
+            case 'reshare':
+                $model = new ReshareModel();
                 return $model;
                 break;
         }

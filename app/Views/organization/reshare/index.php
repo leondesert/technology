@@ -12,12 +12,12 @@ $role = $session->get('role');
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Предварительная раздача</h1>
+            <h1>Раздача</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="/dashboard">Главная</a></li>
-              <li class="breadcrumb-item active">Предварительная раздача</li>
+              <li class="breadcrumb-item active">Раздача</li>
             </ol>
           </div>
         </div>
@@ -29,7 +29,7 @@ $role = $session->get('role');
     <div class="card">
       <?php if ($role == "superadmin") : ?>
       <div class="card-header">
-            <a class="btn btn-primary" href="/pre_share/create">
+            <a class="btn btn-primary" href="/reshare/create">
               <i class="fas fa-user-plus"></i> Создать
             </a>
       </div>

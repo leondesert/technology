@@ -10,7 +10,7 @@ class TicketsModel extends Model
     protected $primaryKey = 'tickets_id';
     protected $allowedFields = [
         'agency_id', 'agency_code', 'agency_name', 'agency_address', 'agency_phone', 'agency_mail',
-        'tickets_id', 'passengers_id', 'opr_id', 'tap_id', 'stamp_id', 'pre_share_id', 'tickets_type',
+        'tickets_id', 'passengers_id', 'opr_id', 'tap_id', 'stamp_id', 'reshare_id', 'tickets_type',
         'tickets_system_id', 'tickets_system_session', 'tickets_system_bso_id', 'tickets_currency',
         'tickets_dealdate', 'tickets_dealtime', 'tickets_OPTYPE', 'tickets_TRANS_TYPE',
         'tickets_MCO_TYPE', 'tickets_MCO_TYPE_rfic', 'tickets_MCO_TYPE_rfisc', 'tickets_BSONUM',
@@ -51,7 +51,7 @@ class TicketsModel extends Model
             'tickets.tickets_DEAL_utc',
             'tickets.summa_no_found',
             'opr.opr_code',
-            'pre_share.pre_share_code',
+            'reshare.reshare_code',
             'agency.agency_code',
             'emd.emd_value',
             'fops.fops_type',
@@ -76,7 +76,7 @@ class TicketsModel extends Model
 
         $builder->select($fields);
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left')
-                ->join('pre_share', 'pre_share.pre_share_id = tickets.pre_share_id', 'left')
+                ->join('reshare', 'reshare.reshare_id = tickets.reshare_id', 'left')
                 ->join('agency', 'agency.agency_id = tickets.agency_id', 'left')
                 ->join('emd', 'emd.tickets_id = tickets.tickets_id', 'left')
                 ->join('fops', 'fops.tickets_id = tickets.tickets_id', 'left')
@@ -134,7 +134,7 @@ class TicketsModel extends Model
             'Время оформления UTC' => 'tickets.tickets_DEAL_utc',
             'Сумма обмена без EMD' => 'tickets.summa_no_found',
             'Код оператора' => 'opr.opr_code',
-            'Код предварительной раздачи' => 'pre_share.pre_share_code',
+            'Код пере-раздачи' => 'reshare.reshare_code',
             'Код агентства' => 'agency.agency_code',
             'Сумма EMD' => 'emd.emd_value',
             'Вид оплаты' => 'fops.fops_type',
