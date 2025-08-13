@@ -224,9 +224,6 @@ class ServicesController extends BaseController
         $method = $this->request->getPost('method');
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
-        // Убираем лишнее преобразование, так как теперь в форме передается ID
-        $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
-
 
         if ($acquiring === 'not_select') {
             $acquiring = null;
@@ -253,12 +250,10 @@ class ServicesController extends BaseController
 
         $file = $this->request->getFile('doc_scan');
         if ($file->isValid() && !$file->hasMoved()) {
-            // Check the file extension
             $validExtensions = ['pdf', 'doc'];
             $extension = $file->getExtension();
 
             if (in_array($extension, $validExtensions)) {
-                // Create the save path if it doesn't exist
                 $path = FCPATH . 'uploads/checks';
                 if (!is_dir($path)) {
                     mkdir($path, 0777, true);
@@ -269,16 +264,12 @@ class ServicesController extends BaseController
                 
                 $data['doc_scan'] = $newName;
             } else {
-                // Handle invalid file extension
                 return redirect()->back()->withInput()->with('error', 'Неверное расширение файла! Допустимы только jpg, jpeg, png.');
             }
         }
-
         if ($model->insert($data)) {
-            // On successful save
             return redirect()->to('/services')->with('success', 'Успешно создан!');
         } else {
-            // Handle save errors
             return redirect()->back()->withInput()->with('error', 'Ошибка!');
         }
     }
@@ -295,7 +286,7 @@ class ServicesController extends BaseController
         $model = new ServicesModel();
         $services = $model->find($id);
         // Убираем преобразование, так как теперь в форме используется ID
-        $services['value'] = $TransactionsController->get_column($services['name'], $services['value'], '_id', '_code');
+        //$services['value'] = $TransactionsController->get_column($services['name'], $services['value'], '_id', '_code');
 
 
         $currencies = ['TJS', 'RUB'];
@@ -329,9 +320,7 @@ class ServicesController extends BaseController
 
     public function update($id)
     {   
-        
         $model = new ServicesModel();
-        $TransactionsController = new Transactions();
 
         $name_table = $this->request->getPost('name_table');
         $value_table = $this->request->getPost('value_table');
@@ -339,7 +328,7 @@ class ServicesController extends BaseController
         $bank = $this->request->getPost('bank');
         $acquiring = $this->request->getPost('acquiring');
         // Убираем лишнее преобразование, так как теперь в форме передается ID
-        $value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
+        //$value_table = $TransactionsController->get_column($name_table, $value_table, '_code', '_id');
 
         if ($acquiring === 'not_select') {
             $acquiring = null;
@@ -368,7 +357,6 @@ class ServicesController extends BaseController
 
 
         if ($file->isValid() && !$file->hasMoved()) {
-            // Создайте путь сохранения, если он не существует
             $path = WRITEPATH . 'uploads/checks';
             if (!is_dir($path)) {
                 mkdir($path, 0777, true);
@@ -380,12 +368,8 @@ class ServicesController extends BaseController
             $data['doc_scan'] = $newName;
         }
         
-        
 
         if ($model->update($id, $data)) {
-            // В случае успешного сохранения
-
-            // Log
             $action = 'Изменен Услуги ID: '.$id;
             $logger = new LogsController(); 
             $logger->logAction($action);
@@ -393,25 +377,21 @@ class ServicesController extends BaseController
 
             return redirect()->to('/services')->with('success', 'Успешно обновлен!');
         } else {
-            // Обработка ошибок сохранения
             return redirect()->back()->withInput()->with('success', 'Ошибка!');
         }
     }
 
     public function delete($id)
     {
-        // Handle the deletion of the agency from the database
         $model = new ServicesModel();
         $model->delete($id);
 
 
-        // Log
         $action = 'Удалено Услуги ID: '.$id;
         $logger = new LogsController(); 
         $logger->logAction($action);
 
 
-        // Redirect to the list of agencies after deletion
         return redirect()->back()->with('success', 'Успешно удален!');
     }
 

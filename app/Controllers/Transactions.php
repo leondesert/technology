@@ -222,7 +222,7 @@ class Transactions extends BaseController
                         $transactions[$key]['value'] = $oprs[$match]['opr_code'] ?? 'Unknown Opr';
                         $transactions[$key]['name'] = "Оператор";
                         break;
-                    case 'share': // Добавляем обработку для share
+                    case 'share': 
                         $match = array_search($transaction['value'], array_column($shares, 'share_id'));
                         $transactions[$key]['value'] = $shares[$match]['share_code'] ?? 'Unknown Share';
                         $transactions[$key]['name'] = "Раздача";

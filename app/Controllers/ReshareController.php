@@ -80,10 +80,11 @@ class ReshareController extends BaseController
         $stamp_ids = $user['stamp_id'] ?? '';
         $tap_ids = $user['tap_id'] ?? '';
         $opr_ids = $user['opr_id'] ?? '';
+        $share_ids = $user['share_id'] ?? ''; 
         $reshare_ids = $user['reshare_id'] ?? ''; 
         $hidden = true;
 
-        if (empty($agency_ids) && empty($stamp_ids) && empty($tap_ids) && empty($opr_ids) && !empty($reshare_ids)) {
+        if (empty($agency_ids) && empty($stamp_ids) && empty($tap_ids) && empty($opr_ids) && empty($share_ids) && !empty($reshare_ids)) {
             $hidden = false;
         }
 

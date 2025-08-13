@@ -14,12 +14,12 @@ $role = $session->get('role');
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Раздача</h1>
+            <h1 class="m-0">Пере-раздача</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="/">Главная</a></li>
-              <li class="breadcrumb-item active">Раздача / Изменить</li>
+              <li class="breadcrumb-item active">Пере-раздача / Изменить</li>
             </ol>
           </div><!-- /.col -->
         </div><!-- /.row -->

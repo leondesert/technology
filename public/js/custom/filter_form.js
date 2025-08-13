@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 || window.location.pathname === '/transactions'
                                 || window.location.pathname.startsWith('/transactions/edit/')
                                 || window.location.pathname === '/services/create'
+                                || window.location.pathname.startsWith('/services/edit/')
                                 || window.location.pathname === '/services'){
                                 option = new Option(item[var1] + option_name, item[var2]);
                             }else{
