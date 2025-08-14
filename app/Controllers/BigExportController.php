@@ -1806,8 +1806,7 @@ class BigExportController extends Controller
                         case 'Код пульта': $current_criteria_table_name = 'tap'; break;
                         case 'Код оператора': $current_criteria_table_name = 'opr'; break;
                         case 'Код раздачи': $current_criteria_table_name = 'share'; break;
-                        case 'Код пере-раздачи
-                        ': $current_criteria_table_name = 'reshare'; break;
+                        case 'Код пере-раздачи': $current_criteria_table_name = 'reshare'; break;
                     }
 
                     if ($current_criteria_table_name) {
@@ -1939,8 +1938,7 @@ class BigExportController extends Controller
                 return 'Код раздачи';
                 break;
             case 'reshare':
-                return 'Код пере-раздачи
-                ';
+                return 'Код пере-раздачи';
                 break;
         }
     }
