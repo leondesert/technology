@@ -34,6 +34,8 @@
                                 <th>tap_id</th>
                                 <th>stamp_id</th>
                                 <th>agency_id</th>
+                                <th>share_id</th>
+                                <th>reshare_id</th>
                             <?php endif; ?>
 
                 

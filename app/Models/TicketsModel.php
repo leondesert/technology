@@ -10,7 +10,7 @@ class TicketsModel extends Model
     protected $primaryKey = 'tickets_id';
     protected $allowedFields = [
         'agency_id', 'agency_code', 'agency_name', 'agency_address', 'agency_phone', 'agency_mail',
-        'tickets_id', 'passengers_id', 'opr_id', 'tap_id', 'stamp_id', 'reshare_id', 'tickets_type',
+        'tickets_id', 'passengers_id', 'opr_id', 'tap_id', 'stamp_id', 'share_id','reshare_id', 'tickets_type',
         'tickets_system_id', 'tickets_system_session', 'tickets_system_bso_id', 'tickets_currency',
         'tickets_dealdate', 'tickets_dealtime', 'tickets_OPTYPE', 'tickets_TRANS_TYPE',
         'tickets_MCO_TYPE', 'tickets_MCO_TYPE_rfic', 'tickets_MCO_TYPE_rfisc', 'tickets_BSONUM',
@@ -76,6 +76,7 @@ class TicketsModel extends Model
 
         $builder->select($fields);
         $builder->join('opr', 'opr.opr_id = tickets.opr_id', 'left')
+                ->join('share', 'share.share_id = tickets.share_id', 'left')
                 ->join('reshare', 'reshare.reshare_id = tickets.reshare_id', 'left')
                 ->join('agency', 'agency.agency_id = tickets.agency_id', 'left')
                 ->join('emd', 'emd.tickets_id = tickets.tickets_id', 'left')

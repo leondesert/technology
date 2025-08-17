@@ -33,6 +33,8 @@ Editor::inst( $db, 'tickets', 'tickets_id' )
 		Field::inst('tap_id'),
 		Field::inst('stamp_id'),
 		Field::inst('agency_id'),
+		Field::inst('share_id'),
+		Field::inst('reshare_id'),
 		Field::inst('tickets_type'),
 		// Field::inst('tickets_system_id')->searchBuilderOptions( SearchBuilderOptions::inst()),
 		// Field::inst('tickets_system_session')->searchBuilderOptions( SearchBuilderOptions::inst()),

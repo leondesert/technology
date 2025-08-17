@@ -294,6 +294,14 @@ $(document).ready(function() {
               label: 'agency_id:',
               name: 'agency_id',
             },
+            {
+              label: 'share_id:',
+              name: 'share_id',
+            },
+            {
+              label: 'reshare_id:',
+              name: 'reshare_id',
+            }
       );
   }
 
@@ -402,6 +410,8 @@ $(document).ready(function() {
             { data: 'tap_id' },
             { data: 'stamp_id' },
             { data: 'agency_id' },
+            { data: 'share_id' },
+            { data: 'reshare_id' }
     );
 
   }
