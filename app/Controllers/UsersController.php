@@ -217,6 +217,7 @@ class UsersController extends BaseController
             'reshares' => $reshares, 
             'filters' => $table_names,
             'roles' => $roles,
+            'can_reduct_share_reshare' => $user['can_reduct_share_reshare'] ?? '0',
             
         ];
 
