@@ -289,6 +289,7 @@ class UsersController extends BaseController
 
         $acquiring = $this->request->getPost('acquiring') ? '1' : '0';
         $is_airline = $this->request->getPost('is_airline') ? '1' : '0';
+        $can_reduct_share_reshare = $this->request->getPost('can_reduct_share_reshare') ? '1' : '0';
 
         // Определение родителя
         $parent_value_for_db = null;
@@ -320,6 +321,7 @@ class UsersController extends BaseController
             'fio' => $fio,
             'acquiring' => $acquiring,
             'is_airline' => $is_airline,
+            'can_reduct_share_reshare' => $can_reduct_share_reshare,
         ];
         $userModel->insert($data_to_insert);
 
@@ -365,6 +367,7 @@ class UsersController extends BaseController
 
         $acquiring = $this->request->getPost('acquiring') ? '1' : '0';
         $is_airline = $this->request->getPost('is_airline') ? '1' : '0';
+        $can_reduct_share_reshare = $this->request->getPost('can_reduct_share_reshare') ? '1' : '0';
 
         $model = new UserModel();
         $data = [
@@ -380,6 +383,7 @@ class UsersController extends BaseController
             'fio' => $fio,
             'acquiring' => $acquiring,
             'is_airline' => $is_airline,
+            'can_reduct_share_reshare' => $can_reduct_share_reshare,
         ];
 
         if (!empty($password)) {
