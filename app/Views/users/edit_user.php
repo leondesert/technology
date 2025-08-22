@@ -229,6 +229,15 @@ $role = $session->get('role');
                             </label>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="can_reduct_share_reshare" id="can_reduct_share_reshare" value="1" <?= (isset($user['can_reduct_share_reshare']) && $user['can_reduct_share_reshare'] == '1') ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="can_reduct_share_reshare">
+                              Может изменять Раздачу/Перераздачу
+                            </label>
+                        </div>
+                    </div>
                   <?php endif; ?>
 
 
