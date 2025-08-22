@@ -431,8 +431,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <p><strong>Номер билета:</strong> <span id="reductBso"></span></p>
-        <input type="hidden" id="reductBsoHidden">
+        <input type="hidden" id="reductTicketBSONUMHidden">
         <div class="form-group">
           <label for="reductShare">Код раздачи</label>
           <input type="text" class="form-control" id="reductShare">

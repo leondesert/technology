@@ -112,6 +112,7 @@ $routes->get('/reshare/get_reward', 'ReshareController::get_reward');
 
 $routes->get('/operations', 'OperationsController::index');
 $routes->post('/operations/get_active_params', 'OperationsController::get_active_params');
+$routes->post('/operations/reduct_share_reshare', 'OperationsController::reduct_share_reshare');
 
 
 $routes->get('/ticket', 'Tickets::ticket');

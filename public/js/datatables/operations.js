@@ -1419,10 +1419,11 @@ if (can_reduct_share_reshare == 1) {
         orderable: false,
         searchable: false,
         render: function(data, type, row) {
-            var bsoNum = row.tickets.tickets_BSONUM;
+            var ticketId = row.tickets.tickets_id;
+            var ticketBSONUM = row.tickets.tickets_BSONUM;
             var shareCode = row.share.share_code;
             var reshareCode = row.reshare.reshare_code;
-            return `<button class="btn btn-sm btn-warning reduct-action" data-bso="${bsoNum}" data-share="${shareCode}" data-reshare="${reshareCode}"><i class="fas fa-pencil-alt"></i></button>`;
+            return `<button class="btn btn-sm btn-warning reduct-action" data-ticket-id="${ticketId}" data-ticket-bsonum="${ticketBSONUM}" data-share="${shareCode}" data-reshare="${reshareCode}"><i class="fas fa-pencil-alt"></i></button>`;
         }
     });
 }
@@ -1576,12 +1577,13 @@ table.on('search.dt', function() {
 });
 
 $('#operations tbody').on('click', '.reduct-action', function () {
-    var bso = $(this).data('bso');
+    var ticketId = $(this).data('ticket-id');
+    var ticketBSONUM = $(this).data('ticket-bsonum');
     var share = $(this).data('share');
     var reshare = $(this).data('reshare');
     
-    $('#reductBso').text(bso);
-    $('#reductBsoHidden').val(bso);
+    $('#reductTicketIdHidden').val(ticketId);
+    $('#reductTicketBSONUMHidden').val(ticketBSONUM);
     $('#reductShare').val(share);
     $('#reductReshare').val(reshare);
 
@@ -1986,7 +1988,7 @@ $('#submitReport').click(function(){
         
         
 $('#saveReduct').on('click', function() {
-    var bso = $('#reductBsoHidden').val();
+    var ticketBSONUM = $('#reductTicketBSONUMHidden').val();
     var share = $('#reductShare').val();
     var reshare = $('#reductReshare').val();
 
@@ -1994,7 +1996,7 @@ $('#saveReduct').on('click', function() {
         url: '/operations/reduct_share_reshare',
         method: 'POST',
         data: {
-            bso: bso,
+            ticket_BSONUM: ticketBSONUM,
             share_code: share,
             reshare_code: reshare
         },
