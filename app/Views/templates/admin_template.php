@@ -554,7 +554,7 @@ $uniqueTaxCodes = session()->get('uniqueTaxCodes');
   
   var is_acquiring = "<?php echo $user['acquiring']; ?>";
   var is_airline = "<?php echo $user['is_airline']; ?>";
-
+  var can_reduct_share_reshare = "<?php echo $user['can_reduct_share_reshare']; ?>";
 
 </script>
 

@@ -1392,6 +1392,7 @@ var columns = [
         { data: 'custom.penalty_currency', searchable: false, orderable: false, title: 'Курс валюты'},
         { data: 'custom.penalty_summa', searchable: false, orderable: false, title: 'Сумма штрафа'},
         { data: 'custom.penalty', searchable: false, orderable: false, title: 'Штраф'},
+
         
 ];
 
@@ -1410,6 +1411,21 @@ uniqueTaxCodes2.forEach(function(code) {
     columns.push({ data: `tax.${code}`, searchable: false, orderable: false });
 
 });
+
+if (can_reduct_share_reshare == 1) {
+    headersRow.append('<th>Действие</th>');
+    columns.push({
+        data: null,
+        orderable: false,
+        searchable: false,
+        render: function(data, type, row) {
+            var bsoNum = row.tickets.tickets_BSONUM;
+            var shareCode = row.share.share_code;
+            var reshareCode = row.reshare.reshare_code;
+            return `<button class="btn btn-sm btn-warning reduct-action" data-bso="${bsoNum}" data-share="${shareCode}" data-reshare="${reshareCode}"><i class="fas fa-pencil-alt"></i></button>`;
+        }
+    });
+}
 
 
 
@@ -1557,6 +1573,19 @@ var table = $('#operations').DataTable({
 table.on('search.dt', function() {
     searchBuilderParams = table.searchBuilder.getDetails();
     // console.log('search.dt', searchBuilderParams);
+});
+
+$('#operations tbody').on('click', '.reduct-action', function () {
+    var bso = $(this).data('bso');
+    var share = $(this).data('share');
+    var reshare = $(this).data('reshare');
+    
+    $('#reductBso').text(bso);
+    $('#reductBsoHidden').val(bso);
+    $('#reductShare').val(share);
+    $('#reductReshare').val(reshare);
+
+    $('#reductModal').modal('show');
 });
 
 
@@ -1954,13 +1983,36 @@ $('#submitReport').click(function(){
         });
 
 
+        
+        
+$('#saveReduct').on('click', function() {
+    var bso = $('#reductBsoHidden').val();
+    var share = $('#reductShare').val();
+    var reshare = $('#reductReshare').val();
 
-
-
-
-
-
-
+    $.ajax({
+        url: '/operations/reduct_share_reshare',
+        method: 'POST',
+        data: {
+            bso: bso,
+            share_code: share,
+            reshare_code: reshare
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                toastr.success(response.message || 'Сохранено успешно!');
+                $('#reductModal').modal('hide');
+                table.ajax.reload(null, false);
+            } else {
+                toastr.error(response.message || 'Ошибка при сохранении.');
+            }
+        },
+        error: function() {
+            toastr.error('Произошла ошибка. Пожалуйста, попробуйте снова.');
+        }
+    });
+});
 
 } //link
     

@@ -420,4 +420,34 @@
 
 
 
+<!-- Modal for Share/Reshare Edit -->
+<div class="modal fade" id="reductModal" tabindex="-1" role="dialog" aria-labelledby="reductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reductModalLabel">Редактировать Раздачу/Перераздачу</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Номер билета:</strong> <span id="reductBso"></span></p>
+        <input type="hidden" id="reductBsoHidden">
+        <div class="form-group">
+          <label for="reductShare">Код раздачи</label>
+          <input type="text" class="form-control" id="reductShare">
+        </div>
+        <div class="form-group">
+          <label for="reductReshare">Код перераздачи</label>
+          <input type="text" class="form-control" id="reductReshare">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+        <button type="button" class="btn btn-primary" id="saveReduct">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?= $this->endSection() ?>
