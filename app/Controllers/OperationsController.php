@@ -49,6 +49,22 @@ class OperationsController extends BaseController
 
 
         $ProfileController = new Profile();
+
+        if ($role === 'superadmin') {
+            $shareModel = new ShareModel();
+            $shares = $shareModel->findAll();
+            $reshareModel = new ReshareModel();
+            $reshares = $reshareModel->findAll();
+        } else {
+            $user = $userModel->find($user_id);
+            $shares_ids = explode(',', $user['share_id']);
+            $reshares_ids = explode(',', $user['reshare_id']);
+
+            $shareModel = new ShareModel();
+            $shares = $shareModel->whereIn('share_id', $shares_ids)->findAll();
+            $reshareModel = new ReshareModel();
+            $reshares = $reshareModel->whereIn('reshare_id', $reshares_ids)->findAll();
+        }
     
         $data = [
             'users' => $users,
@@ -57,9 +73,9 @@ class OperationsController extends BaseController
             'user_id' => $user_id,
             'username' => $username,
             'role' => $role,
-            'filter_values' => $ProfileController->get_filter_values()
-            
-        
+            'filter_values' => $ProfileController->get_filter_values(),
+            'shares' => $shares,
+            'reshares' => $reshares,
         ];
 
 

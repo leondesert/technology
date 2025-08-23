@@ -1584,8 +1584,8 @@ $('#operations tbody').on('click', '.reduct-action', function () {
     
     $('#reductTicketIdHidden').val(ticketId);
     $('#reductTicketBSONUMHidden').val(ticketBSONUM);
-    $('#reductShare').val(share);
-    $('#reductReshare').val(reshare);
+    $('#reductShare').val(share).trigger('change');
+    $('#reductReshare').val(reshare).trigger('change');
 
     $('#reductModal').modal('show');
 });

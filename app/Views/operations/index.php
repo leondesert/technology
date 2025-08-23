@@ -67,6 +67,18 @@
         color: #6c757d;
     }
 
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px !important;
+    }
+
 </style>
 
 
@@ -434,11 +446,21 @@
         <input type="hidden" id="reductTicketBSONUMHidden">
         <div class="form-group">
           <label for="reductShare">Код раздачи</label>
-          <input type="text" class="form-control" id="reductShare">
+          <select class="form-control select2" id="reductShare" style="width: 100%;">
+            <option value="">Выбрать</option>
+            <?php foreach ($shares as $share): ?>
+              <option value="<?= esc($share['share_code'], 'attr') ?>"><?= esc($share['share_code']) ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
         <div class="form-group">
           <label for="reductReshare">Код перераздачи</label>
-          <input type="text" class="form-control" id="reductReshare">
+          <select class="form-control select2" id="reductReshare" style="width: 100%;">
+            <option value="">Выбрать</option>
+            <?php foreach ($reshares as $reshare): ?>
+              <option value="<?= esc($reshare['reshare_code'], 'attr') ?>"><?= esc($reshare['reshare_code']) ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
       </div>
       <div class="modal-footer">
