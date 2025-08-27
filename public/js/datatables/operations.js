@@ -1760,6 +1760,7 @@ $('#operations tbody').on('click', '.reduct-action', function () {
 
             // Применение фильтра
             table.searchBuilder.rebuild(filter);
+            table.draw();
         }
 
 
