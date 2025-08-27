@@ -1588,6 +1588,13 @@ $('#operations tbody').on('click', '.reduct-action', function () {
     $('#reductReshare').val(reshare).trigger('change');
 
     $('#reductModal').modal('show');
+
+    // Initialize Select2 on modal open
+    $('#reductModal').on('shown.bs.modal', function () {
+        $('#reductShare, #reductReshare').select2({
+            dropdownParent: $('#reductModal')
+        });
+    });
 });
 
 
