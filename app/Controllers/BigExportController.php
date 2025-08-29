@@ -2287,6 +2287,29 @@ class BigExportController extends Controller
             }
         }
         
+        // для Operations
+        if ($params['page'] === "operations") {
+            if(isset($params['name_table'])){
+                $name_colum = $params['name_table'].".".$params['name_table']."_code";
+
+                if ($params['name_table'] !== "all") {
+                    if ($params['value_table'] !== "all") {
+                        $builder->where($name_colum, $params['value_table']);
+                    }else{
+                        $gettable = new Transactions(); 
+                        $tableDatas = $gettable->gettable($params['name_table'], $params['user_login']);
+                        $colum = $params['name_table'].'_code';
+                        $values = [];
+                        foreach($tableDatas as $item){
+                            $values[] = $item[$colum];
+                        }
+
+                        $builder->whereIn($name_colum, $values);
+                    }
+                }
+            }
+        }
+        
         
 
         // для Flightload

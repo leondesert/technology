@@ -1501,6 +1501,7 @@ var table = $('#operations').DataTable({
 
             // Получаем текущие параметры запроса
             var params = this.api().ajax.params();
+            params.value_table = $('#value_table').val();
 
             // console.log('drawCallback', params);
 
@@ -1767,7 +1768,6 @@ $('#operations tbody').on('click', '.reduct-action', function () {
 
             // Применение фильтра
             table.searchBuilder.rebuild(filter);
-            table.draw();
         }
 
 
